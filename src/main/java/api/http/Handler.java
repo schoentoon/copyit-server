@@ -30,14 +30,14 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class Handler extends SimpleChannelInboundHandler<Object> {
-  protected void messageReceived(ChannelHandlerContext chx, Object o) throws Exception {
-    if (o instanceof HttpRequest) {
-      final HttpRequest http = (HttpRequest) o;
-      final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1
-              ,http.getDecoderResult().isSuccess() ? OK : BAD_REQUEST
-              ,Unpooled.copiedBuffer("TEST", CharsetUtil.UTF_8));
-      chx.write(response);
-    } else
-      chx.close();
+    protected void messageReceived(ChannelHandlerContext chx, Object o) throws Exception {
+        if (o instanceof HttpRequest) {
+            final HttpRequest http = (HttpRequest) o;
+            final FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1
+                    ,http.getDecoderResult().isSuccess() ? OK : BAD_REQUEST
+                    ,Unpooled.copiedBuffer("TEST", CharsetUtil.UTF_8));
+            chx.write(response);
+        } else
+            chx.close();
   }
 }
