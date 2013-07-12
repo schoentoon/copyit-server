@@ -24,8 +24,8 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 
 public class Initializer extends ChannelInitializer<SocketChannel> {
-    public void initChannel(SocketChannel ch) throws Exception {
-        ChannelPipeline p = ch.pipeline();
+    public void initChannel(final SocketChannel ch) throws Exception {
+        final ChannelPipeline p = ch.pipeline();
         p.addLast("decoder", new HttpRequestDecoder());
         p.addLast("encoder", new HttpResponseEncoder());
         p.addLast("handler", new Handler());
