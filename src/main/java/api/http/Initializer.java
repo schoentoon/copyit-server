@@ -1,5 +1,3 @@
-package api.http;
-
 /*  copyit-server
  *  Copyright (C) 2013  Toon Schoenmakers
  *
@@ -16,6 +14,8 @@ package api.http;
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+package api.http;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
