@@ -15,10 +15,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package config;
+package net.mms_projects.copy_it.config;
 
 import org.junit.Test;
-import server.config.Config;
+import net.mms_projects.copy_it.server.config.Config;
 import java.io.File;
 
 public class ConfigTest {

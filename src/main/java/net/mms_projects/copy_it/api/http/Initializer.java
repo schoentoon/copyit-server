@@ -15,10 +15,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server.config;
+package net.mms_projects.copy_it.api.http;
 
-public class NoConfigException extends Exception {
-    public NoConfigException() {
-        super("A config file was never loaded.");
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.socket.SocketChannel;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
+
+public class Initializer extends ChannelInitializer<SocketChannel> {
+    public void initChannel(final SocketChannel ch) throws Exception {
+        final ChannelPipeline p = ch.pipeline();
+        p.addLast("decoder", new HttpRequestDecoder());
+        p.addLast("encoder", new HttpResponseEncoder());
+        p.addLast("handler", new Handler());
     }
 }

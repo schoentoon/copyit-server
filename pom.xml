@@ -30,7 +30,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>server.Main</mainClass>
+                            <mainClass>net.mms_projects.copy_it.server.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

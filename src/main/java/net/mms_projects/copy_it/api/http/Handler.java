@@ -15,7 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package api.http;
+package net.mms_projects.copy_it.api.http;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;

@@ -15,14 +15,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server;
+package net.mms_projects.copy_it.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import server.config.Config;
+import net.mms_projects.copy_it.server.config.Config;
+import net.mms_projects.copy_it.api.http.Initializer;
 
 import java.io.File;
 
@@ -38,7 +39,7 @@ public class Main {
               ServerBootstrap b = new ServerBootstrap();
               b.group(bossGroup, workerGroup)
                         .channel(NioServerSocketChannel.class)
-                        .childHandler(new api.http.Initializer());
+                        .childHandler(new Initializer());
               Channel ch = b.bind(Config.getHTTPAPIPort()).sync().channel();
               ch.closeFuture().sync();
         } finally {

@@ -15,19 +15,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package api.http;
+package net.mms_projects.copy_it.server.config;
 
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-
-public class Initializer extends ChannelInitializer<SocketChannel> {
-    public void initChannel(final SocketChannel ch) throws Exception {
-        final ChannelPipeline p = ch.pipeline();
-        p.addLast("decoder", new HttpRequestDecoder());
-        p.addLast("encoder", new HttpResponseEncoder());
-        p.addLast("handler", new Handler());
+public class MissingRequiredKey extends Exception {
+    public MissingRequiredKey(String s) {
+        super("Missing the required key \"" + s + "\"");
     }
 }

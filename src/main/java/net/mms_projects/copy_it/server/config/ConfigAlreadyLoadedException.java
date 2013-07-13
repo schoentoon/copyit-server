@@ -15,7 +15,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server.config;
+package net.mms_projects.copy_it.server.config;
 
 public class ConfigAlreadyLoadedException extends Exception {
     public ConfigAlreadyLoadedException() {

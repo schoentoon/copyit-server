@@ -15,10 +15,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package server.config;
+package net.mms_projects.copy_it.server.config;
 
-public class MissingRequiredKey extends Exception {
-    public MissingRequiredKey(String s) {
-        super("Missing the required key \"" + s + "\"");
+public class NoConfigException extends Exception {
+    public NoConfigException() {
+        super("A config file was never loaded.");
     }
 }
