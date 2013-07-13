@@ -1,3 +1,5 @@
+package server;
+
 /*  copyit-server
  *  Copyright (C) 2013  Toon Schoenmakers
  *
@@ -20,11 +22,16 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import server.config.Config;
+
+import java.io.File;
 
 public class Main {
-    private static final int HTTPAPI_PORT = 8080;
-
     public static void main(String[] args) throws Exception {
+        if (args.length > 0)
+            new Config(new File(args[0]));
+        else
+            new Config(new File("copyit.config"));
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -32,7 +39,7 @@ public class Main {
               b.group(bossGroup, workerGroup)
                         .channel(NioServerSocketChannel.class)
                         .childHandler(new api.http.Initializer());
-              Channel ch = b.bind(HTTPAPI_PORT).sync().channel();
+              Channel ch = b.bind(Config.getHTTPAPIPort()).sync().channel();
               ch.closeFuture().sync();
         } finally {
               bossGroup.shutdownGracefully();

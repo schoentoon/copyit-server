@@ -15,3 +15,5 @@
 *.ear
 
 target/
+*.config
+!sample.config
