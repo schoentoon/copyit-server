@@ -26,6 +26,7 @@ public final class Config {
     public final static class Keys {
         public static final String DBCONNECT = "dbconnect";
         public static final String HTTPAPI_PORT = "httpapi_port";
+        public static final String MAXCONN_DATABASEPOOL = "maxconnections_databasepool";
         private static final String[] required = { DBCONNECT, HTTPAPI_PORT };
         private static final String[] ints = { HTTPAPI_PORT };
     }
@@ -46,6 +47,14 @@ public final class Config {
         if (properties != null)
             return Integer.valueOf(properties.getProperty(Keys.HTTPAPI_PORT));
         throw new NoConfigException();
+    }
+
+    public static int getMaxConnectionsDatabasePool() {
+        try {
+            return Integer.valueOf(properties.getProperty(Keys.MAXCONN_DATABASEPOOL));
+        } catch (Exception e) {
+            return 10;
+        }
     }
 
     public static String getDBConnect() throws NoConfigException {

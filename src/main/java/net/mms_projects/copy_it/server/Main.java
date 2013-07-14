@@ -22,8 +22,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.api.http.Initializer;
+import net.mms_projects.copy_it.server.config.Config;
+import net.mms_projects.copy_it.server.database.DatabasePool;
+import net.mms_projects.copy_it.server.database.MySQL;
 
 import java.io.File;
 
@@ -33,6 +35,7 @@ public class Main {
             new Config(new File(args[0]));
         else
             new Config(new File("copyit.config"));
+        new DatabasePool(MySQL.class, Config.getMaxConnectionsDatabasePool());
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
