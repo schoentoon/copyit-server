@@ -26,8 +26,8 @@ public class DatabasePoolTest {
     @Test(expected=OutOfConnectionsException.class,timeout=30000)
     public void runTest() throws Exception {
         new Config(new File(System.getProperty("testConfigFile")));
-        new DatabasePool(MySQL.class, Config.getMaxConnectionsDatabasePool());
-        final int maxconnections = Config.getMaxConnectionsDatabasePool(); /* We want to claim more than we have */
+        final int maxconnections = Config.getMaxConnectionsDatabasePool();
+        new DatabasePool(MySQL.class, maxconnections);
         for (int i = 0; i < maxconnections; i++)
             DatabasePool.getConnection();
         DatabasePool.getConnection();
