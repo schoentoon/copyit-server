@@ -1,6 +1,8 @@
 language: java
+before_script:
+  - mysql -e 'create database copyit;'
 script:
- - mvn test
+ - mvn test -DtestConfigFile=travis.config
 jdk:
  - oraclejdk7
  - openjdk7

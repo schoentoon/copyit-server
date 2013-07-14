@@ -39,7 +39,7 @@ public final class DatabasePool {
         singleton = this;
     }
 
-    public static final Database getDBConnection() {
+    public static final Database getDBConnection() throws OutOfConnectionsException {
         for (int i = 0; i < singleton.maxConnections; i++) {
             final Database connection = singleton.connections.get(i);
             if (!singleton.claimed_connections.contains(connection)) {
@@ -47,14 +47,14 @@ public final class DatabasePool {
                 return connection;
             }
         }
-        return null;
+        throw new OutOfConnectionsException();
     }
 
     public static void freeDBConnection(final Database connection) {
         singleton.claimed_connections.remove(connection);
     }
 
-    public static final Connection getConnection() {
+    public static final Connection getConnection() throws OutOfConnectionsException {
         return getDBConnection().getConnection();
     }
 

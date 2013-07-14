@@ -15,15 +15,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package net.mms_projects.copy_it.config;
+package net.mms_projects.copy_it.server.database;
 
-import org.junit.Test;
-import net.mms_projects.copy_it.server.config.Config;
-import java.io.File;
-
-public class ConfigTest {
-    @Test
-    public void runTest() throws Exception {
-        new Config(new File("sample.config"));
+public class OutOfConnectionsException extends Exception {
+    private static final String MESSAGE = "We're out of connections in the databasepool.";
+    public OutOfConnectionsException() {
+        super(MESSAGE);
     }
 }
