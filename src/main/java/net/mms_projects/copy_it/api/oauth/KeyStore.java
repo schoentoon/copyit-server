@@ -18,7 +18,7 @@
 package net.mms_projects.copy_it.api.oauth;
 
 import net.mms_projects.copy_it.server.database.Database;
-import java.sql.Connection;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,10 +26,9 @@ import java.util.HashMap;
 
 public class KeyStore {
     private static KeyStore keyStore = null;
-    public KeyStore(final Database database) throws Exception {
+    public KeyStore() throws Exception {
         if (keyStore != null)
             throw new Exception("There is already a keystore present.");
-        this.conn = database.getConnection();
         consumers = new HashMap<String, Consumer>();
         keyStore = this;
     }
@@ -43,23 +42,20 @@ public class KeyStore {
                                                "WHERE public_key = ? " +
                                                "LIMIT 1";
 
-    public Consumer getConsumer(final String public_key) throws SQLException {
+    public Consumer getConsumer(final String public_key, final Database database) throws SQLException {
         Consumer output = consumers.get(public_key);
         if (output != null)
             return output;
-        synchronized (conn) {
-            PreparedStatement statement = conn.prepareStatement(SELECT_QUERY);
-            statement.setString(1, public_key);
-            ResultSet result = statement.executeQuery();
-            if (result.first()) {
-                output = new Consumer(result);
-                consumers.put(output.getPublicKey(), output);
-            }
-            result.close();
+        PreparedStatement statement = database.getConnection().prepareStatement(SELECT_QUERY);
+        statement.setString(1, public_key);
+        ResultSet result = statement.executeQuery();
+        if (result.first()) {
+            output = new Consumer(result);
+            consumers.put(output.getPublicKey(), output);
         }
+        result.close();
         return output;
     }
 
     private final HashMap<String, Consumer> consumers;
-    private final Connection conn;
 }

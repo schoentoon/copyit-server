@@ -30,13 +30,17 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
+import net.mms_projects.copy_it.server.database.Database;
+import net.mms_projects.copy_it.server.database.DatabasePool;
 
+import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
 
 public class Handler extends SimpleChannelInboundHandler<HttpObject> {
     protected void messageReceived(final ChannelHandlerContext chx, final HttpObject o) throws Exception {
@@ -45,6 +49,13 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             final HttpRequest http = (HttpRequest) o;
             this.request = http;
             buf.setLength(0);
+            if (!http.headers().contains(AUTHORIZATION)) {
+                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                        ,UNAUTHORIZED);
+                chx.write(response).addListener(ChannelFutureListener.CLOSE);
+            } else {
+                database = DatabasePool.getDBConnection();
+            }
         } else if (o instanceof HttpContent) {
             final HttpContent httpContent = (HttpContent) o;
             final ByteBuf content = httpContent.content();
@@ -63,10 +74,13 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                     chx.write(response);
                 } else
                     chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                if (database != null)
+                    database.free();
             }
         }
     }
 
     private final StringBuilder buf = new StringBuilder();
+    private Database database = null;
     private HttpRequest request;
 }

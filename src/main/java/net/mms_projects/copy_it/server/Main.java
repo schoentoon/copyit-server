@@ -37,7 +37,7 @@ public class Main {
         else
             new Config(new File("copyit.config"));
         new DatabasePool(MySQL.class, Config.getMaxConnectionsDatabasePool());
-        new KeyStore(new MySQL(Config.getDBConnect()));
+        new KeyStore();
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {

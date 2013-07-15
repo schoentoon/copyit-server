@@ -28,6 +28,10 @@ public abstract class Database {
         connection.close();
     }
 
+    public void free() {
+        DatabasePool.freeConnection(connection);
+    }
+
     public final Connection getConnection() { return connection; }
 
     protected Connection connection;
