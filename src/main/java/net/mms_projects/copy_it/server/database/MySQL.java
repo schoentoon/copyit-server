@@ -26,5 +26,6 @@ public class MySQL extends Database {
         super(dbconnect);
         Class.forName(DRIVER);
         connection = DriverManager.getConnection(dbconnect);
+        connection.setAutoCommit(false);
     }
 }
