@@ -71,27 +71,31 @@ public class HeaderVerifier {
             oauth_params.put(split_header[0], split_header[1].replaceAll(STRIP_QUOTES_REGEX, EMPTY));
         }
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_CONSUMER_KEY))
-            throw new OAuthException(ErrorMessages.MISSING_CONSUMER_KEY);
+            error(ErrorMessages.MISSING_CONSUMER_KEY);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_NONCE))
-            throw new OAuthException(ErrorMessages.MISSING_NONCE);
+            error(ErrorMessages.MISSING_NONCE);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_TIMESTAMP))
-            throw new OAuthException(ErrorMessages.MISSING_TIMESTAMP);
-        if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE_METHOD))
-            throw new OAuthException(ErrorMessages.MISSING_SIGNATURE_METHOD);
-        if (!oauth_params.containsKey(OAuthParameters.OAUTH_VERSION))
-            throw new OAuthException(ErrorMessages.MISSING_VERSION);
-        if (!oauth_params.containsKey(OAuthParameters.OAUTH_TOKEN))
-            throw new OAuthException(ErrorMessages.MISSING_TOKEN);
-        if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE))
-            throw new OAuthException(ErrorMessages.MISSING_SIGNATURE);
-        try {
-            final long timestamp = Integer.valueOf(oauth_params.get(OAuthParameters.OAUTH_TIMESTAMP)).longValue();
-            final long now = (System.currentTimeMillis() / 1000);
-            if ((now-300) > timestamp && timestamp < (now+300))
-                throw new OAuthException(ErrorMessages.TIMESTAMP_OUT_OF_BOUNDS);
-        } catch (NumberFormatException e) {
-            throw new OAuthException(ErrorMessages.INVALID_TIMESTAMP);
+            error(ErrorMessages.MISSING_TIMESTAMP);
+        else {
+            try {
+                final long timestamp = Integer.valueOf(oauth_params.get(OAuthParameters.OAUTH_TIMESTAMP)).longValue();
+                final long now = (System.currentTimeMillis() / 1000);
+                if ((now-300) > timestamp && timestamp < (now+300))
+                    error(ErrorMessages.TIMESTAMP_OUT_OF_BOUNDS);
+            } catch (NumberFormatException e) {
+                error(ErrorMessages.INVALID_TIMESTAMP);
+            }
         }
+        if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE_METHOD))
+            error(ErrorMessages.MISSING_SIGNATURE_METHOD);
+        if (!oauth_params.containsKey(OAuthParameters.OAUTH_VERSION))
+            error(ErrorMessages.MISSING_VERSION);
+        if (!oauth_params.containsKey(OAuthParameters.OAUTH_TOKEN))
+            error(ErrorMessages.MISSING_TOKEN);
+        if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE))
+            error(ErrorMessages.MISSING_SIGNATURE);
+        if (exception != null)
+            throw exception;
         this.request = request;
     }
 
@@ -101,8 +105,16 @@ public class HeaderVerifier {
             throw new OAuthException(ErrorMessages.INVALID_CONSUMER_KEY);
     }
 
+    private void error(String message) {
+        if (exception == null)
+            exception = new OAuthException(message);
+        else
+            exception.addError(message);
+    }
+
     private final String auth_header;
     private final HttpRequest request;
     private final Map<String, String> oauth_params;
+    private OAuthException exception;
     private Consumer consumer;
 }

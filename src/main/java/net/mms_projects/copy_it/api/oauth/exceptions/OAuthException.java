@@ -20,12 +20,28 @@ package net.mms_projects.copy_it.api.oauth.exceptions;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class OAuthException extends Exception {
     private static final String ERROR = "error";
     private static final String ERROR_MESSAGES = "error_messages";
 
     public OAuthException(String message) {
-        super(message);
+        super();
+        errors = new ArrayList<String>();
+        errors.add(message);
+    }
+
+    public void addError(String message) {
+        errors.add(message);
+    }
+
+    public String getMessage() {
+        final StringBuilder output = new StringBuilder();
+        for (int i = 0; i < errors.size(); i++)
+            output.append(errors.get(i) + "\n");
+        return output.toString();
     }
 
     public String toString() {
@@ -36,10 +52,12 @@ public class OAuthException extends Exception {
         final JSONObject json = new JSONObject();
         try {
             json.put(ERROR, true);
-            json.put(ERROR_MESSAGES, getMessage());
+            json.put(ERROR_MESSAGES, errors);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
     }
+
+    private final List<String> errors;
 }
