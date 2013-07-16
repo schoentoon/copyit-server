@@ -17,8 +17,29 @@
 
 package net.mms_projects.copy_it.api.oauth.exceptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class OAuthException extends Exception {
+    private static final String ERROR = "error";
+    private static final String ERROR_MESSAGES = "error_messages";
+
     public OAuthException(String message) {
         super(message);
+    }
+
+    public String toString() {
+        return toJSON().toString();
+    }
+
+    public JSONObject toJSON() {
+        final JSONObject json = new JSONObject();
+        try {
+            json.put(ERROR, true);
+            json.put(ERROR_MESSAGES, getMessage());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json;
     }
 }

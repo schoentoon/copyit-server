@@ -58,7 +58,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             } catch (OAuthException e) {
                 e.printStackTrace();
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,UNAUTHORIZED, Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8));
+                        ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
             } catch (Exception e) {
                 e.printStackTrace();
