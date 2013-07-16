@@ -30,15 +30,17 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
+import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
+import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
 import net.mms_projects.copy_it.server.database.DatabasePool;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
 
@@ -49,21 +51,26 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             final HttpRequest http = (HttpRequest) o;
             this.request = http;
             buf.setLength(0);
-            if (!http.headers().contains(AUTHORIZATION)) {
-                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,UNAUTHORIZED);
-                chx.write(response).addListener(ChannelFutureListener.CLOSE);
-            } else {
+            try {
+                headerVerifier = new HeaderVerifier(http);
                 database = DatabasePool.getDBConnection();
+                headerVerifier.verifyConsumer(database);
+            } catch (OAuthException e) {
+                e.printStackTrace();
+                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                        ,UNAUTHORIZED, Unpooled.copiedBuffer(e.getMessage(), CharsetUtil.UTF_8));
+                chx.write(response).addListener(ChannelFutureListener.CLOSE);
+            } catch (Exception e) {
+                e.printStackTrace();
+                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                        ,INTERNAL_SERVER_ERROR);
+                chx.write(response).addListener(ChannelFutureListener.CLOSE);
             }
         } else if (o instanceof HttpContent) {
             final HttpContent httpContent = (HttpContent) o;
             final ByteBuf content = httpContent.content();
-            buf.append("Echo: ");
-            buf.append(content.toString(CharsetUtil.UTF_8));
-            buf.append("\r\n");
+            System.err.println("POST Data: " + content.toString(CharsetUtil.UTF_8));
             if (o instanceof LastHttpContent) {
-                buf.append("End of content\r\n");
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,o.getDecoderResult().isSuccess() ? OK : BAD_REQUEST
                         ,Unpooled.copiedBuffer(buf.toString(), CharsetUtil.UTF_8));
@@ -81,6 +88,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
     }
 
     private final StringBuilder buf = new StringBuilder();
-    private Database database = null;
+    private Database database;
+    private HeaderVerifier headerVerifier;
     private HttpRequest request;
 }
