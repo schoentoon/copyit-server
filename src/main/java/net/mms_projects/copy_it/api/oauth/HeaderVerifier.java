@@ -29,8 +29,8 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
 
 public class HeaderVerifier {
     private static final class ErrorMessages {
-        private static final String NO_AUTH_HEADER = "No authorization header present.";
-        private static final String NO_REALM_PRESENT = "No OAuth realm present.";
+        private static final String NO_AUTH_HEADER = "No authorization header present";
+        private static final String NO_REALM_PRESENT = "No OAuth realm present";
         private static final String MISSING_CONSUMER_KEY = "Missing oauth_consumer_key";
         private static final String MISSING_NONCE = "Missing oauth_nonce";
         private static final String MISSING_TIMESTAMP = "Missing oauth_timestamp";
@@ -39,6 +39,8 @@ public class HeaderVerifier {
         private static final String MISSING_TOKEN = "Missing oauth_token";
         private static final String MISSING_SIGNATURE = "Missing oauth_signature";
         private static final String INVALID_CONSUMER_KEY = "Invalid consumer key";
+        private static final String INVALID_TIMESTAMP = "Invalid timestamp";
+        private static final String TIMESTAMP_OUT_OF_BOUNDS = "Timestamp is out of bounds (is your time correct?)";
     }
     private static final class OAuthParameters {
         private static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
@@ -82,6 +84,14 @@ public class HeaderVerifier {
             throw new OAuthException(ErrorMessages.MISSING_TOKEN);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE))
             throw new OAuthException(ErrorMessages.MISSING_SIGNATURE);
+        try {
+            final long timestamp = Integer.valueOf(oauth_params.get(OAuthParameters.OAUTH_TIMESTAMP)).longValue();
+            final long now = (System.currentTimeMillis() / 1000);
+            if ((now-300) > timestamp && timestamp < (now+300))
+                throw new OAuthException(ErrorMessages.TIMESTAMP_OUT_OF_BOUNDS);
+        } catch (NumberFormatException e) {
+            throw new OAuthException(ErrorMessages.INVALID_TIMESTAMP);
+        }
         this.request = request;
     }
 
