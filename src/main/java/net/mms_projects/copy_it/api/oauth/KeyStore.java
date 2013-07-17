@@ -30,12 +30,9 @@ public class KeyStore {
             super();
         }
     }
-    private static KeyStore keyStore = null;
-    public KeyStore() throws Exception {
-        if (keyStore != null)
-            throw new Exception("There is already a keystore present.");
+    private static final KeyStore keyStore = new KeyStore();
+    public KeyStore() {
         consumers = new HashMap<String, Consumer>();
-        keyStore = this;
     }
 
     public static final KeyStore getKeyStore() {
