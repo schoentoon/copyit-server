@@ -25,6 +25,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 public class KeyStore {
+    public static final class InvalidConsumerException extends Exception {
+        public InvalidConsumerException() {
+            super();
+        }
+    }
     private static KeyStore keyStore = null;
     public KeyStore() throws Exception {
         if (keyStore != null)
@@ -42,7 +47,7 @@ public class KeyStore {
                                                "WHERE public_key = ? " +
                                                "LIMIT 1";
 
-    public Consumer getConsumer(final String public_key, final Database database) throws SQLException {
+    public Consumer getConsumer(final String public_key, final Database database) throws SQLException, InvalidConsumerException {
         Consumer output = consumers.get(public_key);
         if (output != null)
             return output;
@@ -54,6 +59,8 @@ public class KeyStore {
             consumers.put(output.getPublicKey(), output);
         }
         result.close();
+        if (output == null)
+            throw new InvalidConsumerException();
         return output;
     }
 

@@ -100,9 +100,11 @@ public class HeaderVerifier {
     }
 
     public void verifyConsumer(Database database) throws SQLException, OAuthException {
-        consumer = KeyStore.getKeyStore().getConsumer(oauth_params.get(OAuthParameters.OAUTH_CONSUMER_KEY), database);
-        if (consumer == null)
+        try {
+            consumer = KeyStore.getKeyStore().getConsumer(oauth_params.get(OAuthParameters.OAUTH_CONSUMER_KEY), database);
+        } catch (KeyStore.InvalidConsumerException e) {
             throw new OAuthException(ErrorMessages.INVALID_CONSUMER_KEY);
+        }
     }
 
     private void error(String message) {
