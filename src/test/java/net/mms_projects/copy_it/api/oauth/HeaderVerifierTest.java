@@ -146,6 +146,21 @@ public class HeaderVerifierTest {
     }
 
     @Test(expected=OAuthException.class,timeout=1000)
+    public void invalidOAuthVersion() throws OAuthException {
+        String header = "OAuth realm=\"\", " +
+                "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
+                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
+                "oauth_signature_method=\"HMAC-SHA1\", " +
+                "oauth_token=\"oauth_token\", " +
+                "oauth_version=\"2.0\", " +
+                "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
+        request.headers().add(AUTHORIZATION, header);
+        new HeaderVerifier(request);
+    }
+
+    @Test(expected=OAuthException.class,timeout=1000)
     public void missingOAuthToken() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
