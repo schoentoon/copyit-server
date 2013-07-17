@@ -50,6 +50,7 @@
                 <version>2.9</version>
                 <configuration>
                     <forkMode>always</forkMode>
+                    <useFile>false</useFile>
                     <systemProperties>
                         <property>
                             <name>testConfigFile</name>

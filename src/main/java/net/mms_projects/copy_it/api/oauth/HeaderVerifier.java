@@ -81,7 +81,7 @@ public class HeaderVerifier {
             try {
                 final long timestamp = Integer.valueOf(oauth_params.get(OAuthParameters.OAUTH_TIMESTAMP)).longValue();
                 final long now = (System.currentTimeMillis() / 1000);
-                if ((now-300) > timestamp && timestamp < (now+300))
+                if (timestamp < (now-300) || (now+300) < timestamp)
                     error(ErrorMessages.TIMESTAMP_OUT_OF_BOUNDS);
             } catch (NumberFormatException e) {
                 error(ErrorMessages.INVALID_TIMESTAMP);
