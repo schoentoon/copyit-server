@@ -18,6 +18,7 @@
 package net.mms_projects.copy_it.api.oauth;
 
 import io.netty.handler.codec.http.HttpRequest;
+import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
 
@@ -102,7 +103,7 @@ public class HeaderVerifier {
     public void verifyConsumer(Database database) throws SQLException, OAuthException {
         try {
             consumer = KeyStore.getKeyStore().getConsumer(oauth_params.get(OAuthParameters.OAUTH_CONSUMER_KEY), database);
-        } catch (KeyStore.InvalidConsumerException e) {
+        } catch (InvalidConsumerException e) {
             throw new OAuthException(ErrorMessages.INVALID_CONSUMER_KEY);
         }
     }

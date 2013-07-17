@@ -17,6 +17,7 @@
 
 package net.mms_projects.copy_it.api.oauth;
 
+import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
 import net.mms_projects.copy_it.server.database.Database;
 
 import java.sql.PreparedStatement;
@@ -25,11 +26,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 
 public class KeyStore {
-    public static final class InvalidConsumerException extends Exception {
-        public InvalidConsumerException() {
-            super();
-        }
-    }
     private static final KeyStore keyStore = new KeyStore();
     public KeyStore() {
         consumers = new HashMap<String, Consumer>();
