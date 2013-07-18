@@ -1,7 +1,7 @@
 language: java
 before_script:
   - mysql -e 'create database copyit;'
-  - mysql < test/test.sql
+  - mysql copyit < test/test.sql
 script:
   - mvn test -DtestConfigFile=test/travis.config
 jdk:
