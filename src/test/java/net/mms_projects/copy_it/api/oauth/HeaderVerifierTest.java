@@ -30,7 +30,7 @@ import java.security.SecureRandom;
 import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
 
 public class HeaderVerifierTest {
-    private SecureRandom random = new SecureRandom();
+    private final SecureRandom random = new SecureRandom();
 
     @Test(expected=OAuthException.class,timeout=1000)
     public void noAuthHeader() throws OAuthException {

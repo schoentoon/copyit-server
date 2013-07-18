@@ -1,11 +1,12 @@
 language: java
 before_script:
   - mysql -e 'create database copyit;'
+  - mysql < test/test.sql
 script:
- - mvn test -DtestConfigFile=test/travis.config
+  - mvn test -DtestConfigFile=test/travis.config
 jdk:
- - oraclejdk7
- - openjdk7
+  - oraclejdk7
+  - openjdk7
 notifications:
   irc:
     channels:
