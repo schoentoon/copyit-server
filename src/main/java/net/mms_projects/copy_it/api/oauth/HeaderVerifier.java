@@ -43,6 +43,7 @@ public class HeaderVerifier {
         private static final String INVALID_TIMESTAMP = "Invalid timestamp";
         private static final String TIMESTAMP_OUT_OF_BOUNDS = "Timestamp is out of bounds (is your time correct?)";
         private static final String INVALID_VERSION = "Invalid OAuth version, only 1.0 is valid";
+        private static final String INVALID_SIGNATURE_METHOD = "Invalid signature method, only HMAC-SHA1 is allowed";
     }
     private static final class OAuthParameters {
         private static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
@@ -60,6 +61,7 @@ public class HeaderVerifier {
     private static final String STRIP_QUOTES_REGEX = "^\"|\"$";
     private static final String EMPTY = "";
     private static final String VALID_OAUTH_VERSION = "1.0";
+    private static final String VALID_SIGNATURE_METHOD = "HMAC-SHA1";
 
     public HeaderVerifier(final HttpRequest request) throws OAuthException {
         if (!request.headers().contains(AUTHORIZATION))
@@ -91,6 +93,8 @@ public class HeaderVerifier {
         }
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE_METHOD))
             error(ErrorMessages.MISSING_SIGNATURE_METHOD);
+        else if (!oauth_params.get(OAuthParameters.OAUTH_SIGNATURE_METHOD).equals(VALID_SIGNATURE_METHOD))
+            error(ErrorMessages.INVALID_SIGNATURE_METHOD);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_VERSION))
             error(ErrorMessages.MISSING_VERSION);
         else if (!oauth_params.get(OAuthParameters.OAUTH_VERSION).equals(VALID_OAUTH_VERSION))
