@@ -47,7 +47,9 @@ public class HeaderVerifier {
         private static final String INVALID_VERSION = "Invalid OAuth version, only 1.0 is valid";
         private static final String INVALID_SIGNATURE_METHOD = "Invalid signature method, only HMAC-SHA1 is allowed";
         private static final String INVALID_OAUTH_TOKEN = "Invalid OAuth token";
+        private static final String INVALID_FIELD_IN_AUTHHEADER = "There's an invalid parameter in the Authorization header";
     }
+
     private static final class OAuthParameters {
         private static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
         private static final String OAUTH_NONCE = "oauth_nonce";
@@ -56,8 +58,8 @@ public class HeaderVerifier {
         private static final String OAUTH_VERSION = "oauth_version";
         private static final String OAUTH_TOKEN = "oauth_token";
         private static final String OAUTH_SIGNATURE = "oauth_signature";
-
     }
+
     private static final String OAUTH_REALM = "OAuth realm=\"\"";
     private static final String COMMA_REGEX = ", ";
     private static final String EQUALS_REGEX = "=";
@@ -65,6 +67,7 @@ public class HeaderVerifier {
     private static final String EMPTY = "";
     private static final String VALID_OAUTH_VERSION = "1.0";
     private static final String VALID_SIGNATURE_METHOD = "HMAC-SHA1";
+    private static final String OAUTH_ = "oauth_";
 
     public HeaderVerifier(final HttpRequest request) throws OAuthException {
         if (!request.headers().contains(AUTHORIZATION))
@@ -74,7 +77,9 @@ public class HeaderVerifier {
             throw new OAuthException(ErrorMessages.NO_REALM_PRESENT);
         String[] split = auth_header.split(COMMA_REGEX);
         oauth_params = new HashMap<String, String>();
-        for (int i = 0; i < split.length; i++) {
+        for (int i = 1; i < split.length; i++) {
+            if (!split[i].startsWith(OAUTH_))
+                throw new OAuthException(ErrorMessages.INVALID_FIELD_IN_AUTHHEADER);
             String[] split_header = split[i].split(EQUALS_REGEX, 2);
             oauth_params.put(split_header[0], split_header[1].replaceAll(STRIP_QUOTES_REGEX, EMPTY));
         }
