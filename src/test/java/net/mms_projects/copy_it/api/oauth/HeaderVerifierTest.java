@@ -32,20 +32,20 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
 public class HeaderVerifierTest {
     private final SecureRandom random = new SecureRandom();
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void noAuthHeader() throws OAuthException {
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void noRealmPresent() throws OAuthException {
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, "A totally invalid authorization header.");
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthConsumer() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
@@ -59,7 +59,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthNonce() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -73,7 +73,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthTimestamp() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -87,7 +87,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void testTimestampTooLate() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -102,7 +102,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void testTimestampTooEarly() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -117,7 +117,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthSignatureMethod() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -131,7 +131,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void invalidOAuthSignatureMethod() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -146,7 +146,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthVersion() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -160,7 +160,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void invalidOAuthVersion() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -175,7 +175,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthToken() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -189,7 +189,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthSignature() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -203,7 +203,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(expected=OAuthException.class,timeout=100)
+    @Test(expected=OAuthException.class,timeout=500)
     public void invalidParameter() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
@@ -219,7 +219,7 @@ public class HeaderVerifierTest {
         new HeaderVerifier(request);
     }
 
-    @Test(timeout=100)
+    @Test(timeout=500)
     public void validRequest() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
