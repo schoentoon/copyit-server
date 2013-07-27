@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `applications` (
   `_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
   PRIMARY KEY (`_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
 
 CREATE TABLE IF NOT EXISTS `clipboard_data` (
   `user_id` bigint(20) NOT NULL,
@@ -61,14 +61,38 @@ CREATE TABLE IF NOT EXISTS `ubuntuone_user_mapping` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `users` (
-  `user_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_email` varchar(64) NOT NULL,
   `user_pass` char(60) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `user_name` (`user_email`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+
+CREATE TABLE IF NOT EXISTS `user_tokens` (
+  `user_id` int(10) unsigned NOT NULL,
+  `application_id` int(10) unsigned NOT NULL,
+  `public_key` char(64) NOT NULL,
+  `secret_key` char(64) NOT NULL,
+  PRIMARY KEY (`user_id`,`application_id`),
+  KEY `application_user_tokens` (`application_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+DROP TRIGGER IF EXISTS `generate_random_user_tokens`;
+DELIMITER //
+CREATE TRIGGER `generate_random_user_tokens` BEFORE INSERT ON `user_tokens`
+ FOR EACH ROW BEGIN
+ 
+    IF new.public_key = '' AND new.secret_key = '' THEN
+        SET new.public_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64)
+           ,new.secret_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64);
+    END IF;
+END
+//
+DELIMITER ;
 
 
 ALTER TABLE `consumers`
   ADD CONSTRAINT `applications` FOREIGN KEY (`application_id`) REFERENCES `applications` (`_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+ALTER TABLE `user_tokens`
+  ADD CONSTRAINT `applications_` FOREIGN KEY (`application_id`) REFERENCES `applications` (`_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `users` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;

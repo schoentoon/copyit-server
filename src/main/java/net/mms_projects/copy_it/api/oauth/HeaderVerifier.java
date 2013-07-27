@@ -22,6 +22,8 @@ import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +46,7 @@ public class HeaderVerifier {
         private static final String TIMESTAMP_OUT_OF_BOUNDS = "Timestamp is out of bounds (is your time correct?)";
         private static final String INVALID_VERSION = "Invalid OAuth version, only 1.0 is valid";
         private static final String INVALID_SIGNATURE_METHOD = "Invalid signature method, only HMAC-SHA1 is allowed";
+        private static final String INVALID_OAUTH_TOKEN = "Invalid OAuth token";
     }
     private static final class OAuthParameters {
         private static final String OAUTH_CONSUMER_KEY = "oauth_consumer_key";
@@ -116,6 +119,40 @@ public class HeaderVerifier {
         }
     }
 
+    private static final String SELECT_QUERY = "SELECT user_id, secret_key " +
+                                               "FROM user_tokens " +
+                                               "WHERE application_id = ? " +
+                                               "AND public_key = ? " +
+                                               "LIMIT 1";
+
+    public void verifyOAuthToken(Database database) throws SQLException, OAuthException {
+        final String oauth_token = oauth_params.get(OAuthParameters.OAUTH_TOKEN);
+        PreparedStatement statement = database.getConnection().prepareStatement(SELECT_QUERY);
+        statement.setInt(1, consumer.getId());
+        statement.setString(2, oauth_token);
+        ResultSet result = statement.executeQuery();
+        if (result.first())
+            user = new User(result);
+        result.close();
+        if (user == null)
+            throw new OAuthException(ErrorMessages.INVALID_OAUTH_TOKEN);
+    }
+
+    private final class User {
+        public static final String SECRET_KEY = "secret_key";
+        public static final String USER_ID = "user_id";
+        public User(ResultSet result) throws SQLException {
+            secret = result.getString(SECRET_KEY);
+            user_id = result.getInt(USER_ID);
+        }
+
+        public final String getPublicKey() { return oauth_params.get(OAuthParameters.OAUTH_TOKEN); }
+        public final String getSecretKey() { return secret; }
+        public final int getUserId() { return user_id; }
+        private final String secret;
+        private final int user_id;
+    }
+
     private void error(String message) {
         if (exception == null)
             exception = new OAuthException(message);
@@ -128,4 +165,5 @@ public class HeaderVerifier {
     private final Map<String, String> oauth_params;
     private OAuthException exception;
     private Consumer consumer;
+    private User user;
 }

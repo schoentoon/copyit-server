@@ -24,18 +24,22 @@ public class Consumer {
     public static final String PUBLIC_KEY = "public_key";
     public static final String SECRET_KEY = "secret_key";
     public static final String FLAGS = "flags";
+    public static final String APP_ID = "application_id";
 
     public Consumer(ResultSet cursor) throws SQLException {
         public_key = cursor.getString(PUBLIC_KEY);
         secret_key = cursor.getString(SECRET_KEY);
         flags = cursor.getInt(FLAGS);
+        id = cursor.getInt(APP_ID);
     }
 
     public final String getPublicKey() { return public_key; }
     public final String getSecretKey() { return secret_key; }
     public final int getFlags() { return flags; }
+    public final int getId() { return id; }
 
     private final String public_key;
     private final String secret_key;
     private final int flags;
+    private final int id;
 }
