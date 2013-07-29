@@ -22,13 +22,15 @@ import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
+import static io.netty.handler.codec.http.HttpHeaders.Names.HOST;
 
 public class HeaderVerifier {
     private static final class ErrorMessages {
@@ -76,7 +78,7 @@ public class HeaderVerifier {
         if (!auth_header.startsWith(OAUTH_REALM))
             throw new OAuthException(ErrorMessages.NO_REALM_PRESENT);
         String[] split = auth_header.split(COMMA_REGEX);
-        oauth_params = new HashMap<String, String>();
+        oauth_params = new LinkedHashMap<String, String>();
         for (int i = 1; i < split.length; i++) {
             if (!split[i].startsWith(OAUTH_))
                 throw new OAuthException(ErrorMessages.INVALID_FIELD_IN_AUTHHEADER);
@@ -158,6 +160,41 @@ public class HeaderVerifier {
         private final int user_id;
     }
 
+    public void checkSignature(boolean https) throws UnsupportedEncodingException {
+        final String signature = oauth_params.get(OAuthParameters.OAUTH_SIGNATURE);
+        final String raw = createRaw(https);
+    }
+
+    private static final String HTTP = "http";
+    private static final String COLON_SLASH_SLASH = "%3A%2F%2F";
+    private static final String UTF_8 = "UTF-8";
+    private static final String EQUALS = "%3D";
+    private static final String AND = "%26";
+
+    private String createRaw(boolean https) throws UnsupportedEncodingException {
+        final StringBuilder rawbuilder = new StringBuilder();
+        rawbuilder.append(request.getMethod().toString());
+        rawbuilder.append('&');
+        rawbuilder.append(HTTP);
+        if (https)
+            rawbuilder.append('s');
+        rawbuilder.append(COLON_SLASH_SLASH);
+        rawbuilder.append(request.headers().get(HOST));
+        rawbuilder.append(URLEncoder.encode(request.getUri(), UTF_8));
+        rawbuilder.append('&');
+        final String[] keys = new String[oauth_params.size()];
+        oauth_params.keySet().toArray(keys);
+        for (int i = 0; i < keys.length; i++) {
+            rawbuilder.append(keys[i]);
+            rawbuilder.append(EQUALS);
+            rawbuilder.append(URLEncoder.encode(oauth_params.get(keys[i]), UTF_8));
+            if (i != (keys.length - 1))
+                rawbuilder.append(AND);
+        }
+        System.err.println(rawbuilder.toString());
+        return rawbuilder.toString();
+    }
+
     private void error(String message) {
         if (exception == null)
             exception = new OAuthException(message);
@@ -167,7 +204,7 @@ public class HeaderVerifier {
 
     private final String auth_header;
     private final HttpRequest request;
-    private final Map<String, String> oauth_params;
+    private final LinkedHashMap<String, String> oauth_params;
     private OAuthException exception;
     private Consumer consumer;
     private User user;
