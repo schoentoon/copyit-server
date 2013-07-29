@@ -21,9 +21,18 @@ import io.netty.handler.codec.http.HttpRequest;
 import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
+import org.apache.commons.codec.binary.Base64;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -60,6 +69,7 @@ public class HeaderVerifier {
         private static final String OAUTH_VERSION = "oauth_version";
         private static final String OAUTH_TOKEN = "oauth_token";
         private static final String OAUTH_SIGNATURE = "oauth_signature";
+        private static final String KEYS[] = { OAUTH_CONSUMER_KEY, OAUTH_NONCE, OAUTH_SIGNATURE_METHOD, OAUTH_TIMESTAMP, OAUTH_TOKEN, OAUTH_VERSION };
     }
 
     private static final String OAUTH_REALM = "OAuth realm=\"\"";
@@ -160,9 +170,27 @@ public class HeaderVerifier {
         private final int user_id;
     }
 
-    public void checkSignature(boolean https) throws UnsupportedEncodingException {
-        final String signature = oauth_params.get(OAuthParameters.OAUTH_SIGNATURE);
+    private static final String HMAC_SHA1 = "HmacSHA1";
+
+    public void checkSignature(boolean https) throws UnsupportedEncodingException, URISyntaxException {
+        final String signed_with = oauth_params.get(OAuthParameters.OAUTH_SIGNATURE);
         final String raw = createRaw(https);
+        final String secretkey = consumer.getSecretKey() + "&" + user.getSecretKey();
+        System.err.println(secretkey);
+        try {
+            final Key signingKey = new SecretKeySpec(secretkey.getBytes(), HMAC_SHA1);
+            final Mac mac = Mac.getInstance(HMAC_SHA1);
+            mac.init(signingKey);
+            byte[] rawHmac = mac.doFinal(raw.getBytes());
+            final String signature = new String(Base64.encodeBase64(rawHmac));
+            System.err.println("Signed with: " + URLDecoder.decode(signed_with, UTF_8));
+            System.err.println("Should be::: " + signature);
+            System.err.println(URLDecoder.decode(signed_with, UTF_8).equals(signature));
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
     }
 
     private static final String HTTP = "http";
@@ -171,7 +199,7 @@ public class HeaderVerifier {
     private static final String EQUALS = "%3D";
     private static final String AND = "%26";
 
-    private String createRaw(boolean https) throws UnsupportedEncodingException {
+    private String createRaw(boolean https) throws UnsupportedEncodingException, URISyntaxException {
         final StringBuilder rawbuilder = new StringBuilder();
         rawbuilder.append(request.getMethod().toString());
         rawbuilder.append('&');
@@ -179,16 +207,15 @@ public class HeaderVerifier {
         if (https)
             rawbuilder.append('s');
         rawbuilder.append(COLON_SLASH_SLASH);
-        rawbuilder.append(request.headers().get(HOST));
-        rawbuilder.append(URLEncoder.encode(request.getUri(), UTF_8));
+        rawbuilder.append(URLEncoder.encode(request.headers().get(HOST), UTF_8));
+        final URI uri = new URI(request.getUri());
+        rawbuilder.append(URLEncoder.encode(uri.getPath(), UTF_8));
         rawbuilder.append('&');
-        final String[] keys = new String[oauth_params.size()];
-        oauth_params.keySet().toArray(keys);
-        for (int i = 0; i < keys.length; i++) {
-            rawbuilder.append(keys[i]);
+        for (int i = 0; i < OAuthParameters.KEYS.length; i++) {
+            rawbuilder.append(OAuthParameters.KEYS[i]);
             rawbuilder.append(EQUALS);
-            rawbuilder.append(URLEncoder.encode(oauth_params.get(keys[i]), UTF_8));
-            if (i != (keys.length - 1))
+            rawbuilder.append(URLEncoder.encode(oauth_params.get(OAuthParameters.KEYS[i]), UTF_8));
+            if (i != (OAuthParameters.KEYS.length - 1))
                 rawbuilder.append(AND);
         }
         System.err.println(rawbuilder.toString());
