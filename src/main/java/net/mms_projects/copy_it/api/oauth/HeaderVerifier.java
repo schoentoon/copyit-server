@@ -18,6 +18,7 @@
 package net.mms_projects.copy_it.api.oauth;
 
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
@@ -36,7 +37,13 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.HOST;
@@ -59,6 +66,7 @@ public class HeaderVerifier {
         private static final String INVALID_SIGNATURE_METHOD = "Invalid signature method, only HMAC-SHA1 is allowed";
         private static final String INVALID_OAUTH_TOKEN = "Invalid OAuth token";
         private static final String INVALID_FIELD_IN_AUTHHEADER = "There's an invalid parameter in the Authorization header";
+        private static final String INVALID_PARAMETER = "Invalid parameter";
     }
 
     private static final class OAuthParameters {
@@ -123,6 +131,14 @@ public class HeaderVerifier {
             error(ErrorMessages.MISSING_TOKEN);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE))
             error(ErrorMessages.MISSING_SIGNATURE);
+        final QueryStringDecoder querydecoder = new QueryStringDecoder(request.getUri());
+        final Map<String, List<String>> parameters = querydecoder.parameters();
+        final Set<String> keyset = parameters.keySet();
+        final Iterator<String> iter = keyset.iterator();
+        while (iter.hasNext()) {
+            if (iter.next().startsWith(OAUTH_))
+                error(ErrorMessages.INVALID_PARAMETER);
+        }
         if (exception != null)
             throw exception;
         this.request = request;
@@ -176,7 +192,6 @@ public class HeaderVerifier {
         final String signed_with = oauth_params.get(OAuthParameters.OAUTH_SIGNATURE);
         final String raw = createRaw(https);
         final String secretkey = consumer.getSecretKey() + "&" + user.getSecretKey();
-        System.err.println(secretkey);
         try {
             final Key signingKey = new SecretKeySpec(secretkey.getBytes(), HMAC_SHA1);
             final Mac mac = Mac.getInstance(HMAC_SHA1);
@@ -211,12 +226,37 @@ public class HeaderVerifier {
         final URI uri = new URI(request.getUri());
         rawbuilder.append(URLEncoder.encode(uri.getPath(), UTF_8));
         rawbuilder.append('&');
-        for (int i = 0; i < OAuthParameters.KEYS.length; i++) {
-            rawbuilder.append(OAuthParameters.KEYS[i]);
-            rawbuilder.append(EQUALS);
-            rawbuilder.append(URLEncoder.encode(oauth_params.get(OAuthParameters.KEYS[i]), UTF_8));
-            if (i != (OAuthParameters.KEYS.length - 1))
-                rawbuilder.append(AND);
+        if (uri.getQuery() == null) {
+            for (int i = 0; i < OAuthParameters.KEYS.length; i++) {
+                rawbuilder.append(OAuthParameters.KEYS[i]);
+                rawbuilder.append(EQUALS);
+                rawbuilder.append(URLEncoder.encode(oauth_params.get(OAuthParameters.KEYS[i]), UTF_8));
+                if (i != (OAuthParameters.KEYS.length - 1))
+                    rawbuilder.append(AND);
+            }
+        } else {
+            final QueryStringDecoder querydecoder = new QueryStringDecoder(uri);
+            final Map<String, List<String>> parameters = querydecoder.parameters();
+            final Set<String> keyset = parameters.keySet();
+            final Iterator<String> iter = keyset.iterator();
+            final List<String> keys = new ArrayList<String>();
+            while (iter.hasNext())
+                keys.add(iter.next());
+            for (int i = 0; i < OAuthParameters.KEYS.length; i++)
+                keys.add(OAuthParameters.KEYS[i]);
+            Collections.sort(keys);
+            final int length = keys.size();
+            for (int i = 0; i < length; i++) {
+                final String key = keys.get(i);
+                rawbuilder.append(key);
+                rawbuilder.append(EQUALS);
+                if (key.startsWith(OAUTH_))
+                    rawbuilder.append(URLEncoder.encode(oauth_params.get(key), UTF_8));
+                else
+                    rawbuilder.append(URLEncoder.encode(parameters.get(key).get(0), UTF_8));
+                if (i != (length - 1))
+                    rawbuilder.append(AND);
+            }
         }
         System.err.println(rawbuilder.toString());
         return rawbuilder.toString();

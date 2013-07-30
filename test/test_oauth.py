@@ -7,12 +7,13 @@ consumer = oauth.OAuthConsumer(key='401a131e03357df2a563fba48f98749448ed63d37e00
 token = oauth.OAuthToken('9476f5130a07a7c0061de48bc19123f51636af704c5df369701960e0bc151255'
                         ,'b96fc9e22532b6bdc2fb760465ea19fa373c520703877ef7e3f0b6a728cefcb1')
 RESOURCE_URL = 'http://127.0.0.1:8080/1/clipboard/update'
+parameters = { 'atest' : 'true' }
 oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, token=token
-                                                          ,http_method='GET', http_url=RESOURCE_URL)
+                                                          ,http_method='GET', http_url=RESOURCE_URL, parameters=parameters)
 oauth_request.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), consumer, token)
 conn = httplib.HTTPConnection("%s:%d" % ('127.0.0.1', 8080))
 headers = {'Content-Type' : 'application/x-www-form-urlencoded' }
 headers.update(oauth_request.to_header())
-conn.request('GET', RESOURCE_URL, headers=headers)
+conn.request('GET', RESOURCE_URL + "?atest=true", headers=headers)
 response = conn.getresponse()
 print response.read()
