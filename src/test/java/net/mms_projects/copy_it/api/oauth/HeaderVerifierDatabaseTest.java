@@ -118,4 +118,24 @@ public class HeaderVerifierDatabaseTest {
         headerVerifier.verifyConsumer(database);
         headerVerifier.verifyOAuthToken(database);
     }
+
+    @Test(expected=OAuthException.class,timeout=1000)
+    public void replayAttack() throws OAuthException, OutOfConnectionsException, SQLException {
+        String header = "OAuth realm=\"\", " +
+                "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
+                "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
+                "oauth_signature_method=\"HMAC-SHA1\", " +
+                "oauth_version=\"1.0\", " +
+                "oauth_token=\"9476f5130a07a7c0061de48bc19123f51636af704c5df369701960e0bc151255\", " +
+                "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
+        request.headers().add(AUTHORIZATION, header);
+        HeaderVerifier headerVerifier = new HeaderVerifier(request);
+        Database database = DatabasePool.getDBConnection();
+        headerVerifier.verifyConsumer(database);
+        headerVerifier.verifyOAuthToken(database);
+        headerVerifier.verifyOAuthNonce(database);
+        headerVerifier.verifyOAuthNonce(database);
+    }
 }

@@ -201,6 +201,8 @@ public class HeaderVerifier {
 
 
     public void verifyOAuthNonce(Database database) throws SQLException, OAuthException {
+        if (user == null) /* Should NEVER happen! */
+            throw new OAuthException("user is null!");
         final String oauth_nonce = oauth_params.get(OAuthParameters.OAUTH_NONCE);
         PreparedStatement statement = database.getConnection().prepareStatement(NONCE_CHECKING_QUERY);
         statement.setString(1, oauth_nonce);
