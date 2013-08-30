@@ -30,8 +30,6 @@ import net.mms_projects.copy_it.server.database.OutOfConnectionsException;
 import org.junit.Test;
 
 import java.io.File;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.sql.SQLException;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
@@ -41,8 +39,6 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
  */
 
 public class HeaderVerifierDatabaseTest {
-    private final SecureRandom random = new SecureRandom();
-
     static {
         try {
             new Config(new File(System.getProperty("testConfigFile")));
@@ -57,7 +53,7 @@ public class HeaderVerifierDatabaseTest {
     public void verifyConsumer() throws OAuthException, SQLException, OutOfConnectionsException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -74,7 +70,7 @@ public class HeaderVerifierDatabaseTest {
     public void verifyInvalidConsumer() throws OAuthException, SQLException, OutOfConnectionsException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"This is a totally invalid consumer key\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -91,7 +87,7 @@ public class HeaderVerifierDatabaseTest {
     public void verifyUserToken() throws OAuthException, OutOfConnectionsException, SQLException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -109,7 +105,7 @@ public class HeaderVerifierDatabaseTest {
     public void verifyInvalidUserToken() throws OAuthException, OutOfConnectionsException, SQLException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +

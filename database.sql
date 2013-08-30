@@ -78,10 +78,11 @@ CREATE TABLE IF NOT EXISTS `user_tokens` (
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `nonces` (
-  `id` int(25) NOT NULL AUTO_INCREMENT,
-  `nonce` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MEMORY  DEFAULT CHARSET=latin1;
+  `_id` int(10) unsigned NOT NULL,
+  `nonce` varchar(8) NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`_id`,`nonce`)
+) ENGINE=MEMORY DEFAULT CHARSET=latin1;
 
 DROP TRIGGER IF EXISTS `generate_random_user_tokens`;
 DELIMITER //

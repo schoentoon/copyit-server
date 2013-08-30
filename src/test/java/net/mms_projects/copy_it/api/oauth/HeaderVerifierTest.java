@@ -24,7 +24,6 @@ import io.netty.handler.codec.http.HttpVersion;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import org.junit.Test;
 
-import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
@@ -48,7 +47,7 @@ public class HeaderVerifierTest {
     @Test(expected=OAuthException.class,timeout=500)
     public void missingOAuthConsumer() throws OAuthException {
         String header = "OAuth realm=\"\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -77,7 +76,7 @@ public class HeaderVerifierTest {
     public void missingOAuthTimestamp() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
                 "oauth_token=\"oauth_token\", " +
@@ -91,7 +90,7 @@ public class HeaderVerifierTest {
     public void testTimestampTooLate() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString((System.currentTimeMillis()/1000)+9001) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -106,7 +105,7 @@ public class HeaderVerifierTest {
     public void testTimestampTooEarly() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString((System.currentTimeMillis()/1000)-9001) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -121,7 +120,7 @@ public class HeaderVerifierTest {
     public void missingOAuthSignatureMethod() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_version=\"1.0\", " +
                 "oauth_token=\"oauth_token\", " +
@@ -135,7 +134,7 @@ public class HeaderVerifierTest {
     public void invalidOAuthSignatureMethod() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"MD5\", " +
                 "oauth_token=\"oauth_token\", " +
@@ -150,7 +149,7 @@ public class HeaderVerifierTest {
     public void missingOAuthVersion() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_token=\"oauth_token\", " +
@@ -164,7 +163,7 @@ public class HeaderVerifierTest {
     public void invalidOAuthVersion() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_token=\"oauth_token\", " +
@@ -179,7 +178,7 @@ public class HeaderVerifierTest {
     public void missingOAuthToken() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -193,7 +192,7 @@ public class HeaderVerifierTest {
     public void missingOAuthSignature() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -207,7 +206,23 @@ public class HeaderVerifierTest {
     public void invalidParameter() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
+                "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
+                "oauth_signature_method=\"HMAC-SHA1\", " +
+                "oauth_version=\"1.0\", " +
+                "oauth_token=\"oauth_token\"" +
+                "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"" +
+                "i_am_invalid=\"I'm totally fake\"";
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
+        request.headers().add(AUTHORIZATION, header);
+        new HeaderVerifier(request);
+    }
+
+    @Test(expected=OAuthException.class,timeout=500)
+    public void tooLongNonce() throws OAuthException {
+        String header = "OAuth realm=\"\", " +
+                "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +
@@ -223,7 +238,7 @@ public class HeaderVerifierTest {
     public void validRequest() throws OAuthException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
-                "oauth_nonce=\"" + (new BigInteger(130, random).toString(32)) + "\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
                 "oauth_signature_method=\"HMAC-SHA1\", " +
                 "oauth_version=\"1.0\", " +

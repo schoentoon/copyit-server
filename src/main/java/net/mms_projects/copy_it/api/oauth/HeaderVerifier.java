@@ -67,7 +67,8 @@ public class HeaderVerifier {
         private static final String INVALID_OAUTH_TOKEN = "Invalid OAuth token";
         private static final String INVALID_FIELD_IN_AUTHHEADER = "There's an invalid parameter in the Authorization header";
         private static final String INVALID_PARAMETER = "Invalid parameter";
-        private static final String USED_NONCE = "This nonce is already used!";
+        private static final String USED_NONCE = "This nonce was used earlier already.";
+        private static final String NONCE_TOO_LONG = "Your nonce is too long, maximum length is 8.";
     }
 
     private static final class OAuthParameters {
@@ -108,6 +109,8 @@ public class HeaderVerifier {
             error(ErrorMessages.MISSING_CONSUMER_KEY);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_NONCE))
             error(ErrorMessages.MISSING_NONCE);
+        else if (oauth_params.get(OAuthParameters.OAUTH_NONCE).length() > 8)
+            error(ErrorMessages.NONCE_TOO_LONG);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_TIMESTAMP))
             error(ErrorMessages.MISSING_TIMESTAMP);
         else {
@@ -187,40 +190,32 @@ public class HeaderVerifier {
         private final int user_id;
     }
 
-    private static final String NONCE_CHECKING_QUERY = "SELECT nonce " +
-            "FROM nonces " +
-            "WHERE nonce = ? " +
-            "LIMIT 1";
+    private static final String NONCE_CHECKING_QUERY = "SELECT 1 " +
+                                                       "FROM nonces " +
+                                                       "WHERE nonce = ? " +
+                                                       "AND _id = ? " +
+                                                       "AND (NOW() - INTERVAL 5 MINUTE) < timestamp";
     private static final String NONCE_INSERT_QUERY = "INSERT INTO nonces " +
-            "(`id`, `nonce`) " +
-            "VALUES (NULL, ?);";
+                                                     "(_id, nonce) " +
+                                                     "VALUES (?, ?);";
 
 
     public void verifyOAuthNonce(Database database) throws SQLException, OAuthException {
         final String oauth_nonce = oauth_params.get(OAuthParameters.OAUTH_NONCE);
         PreparedStatement statement = database.getConnection().prepareStatement(NONCE_CHECKING_QUERY);
         statement.setString(1, oauth_nonce);
+        statement.setInt(2, user.getUserId());
         ResultSet result = statement.executeQuery();
-        if (result.first())
-            nonce = new Nonce(result);
-        result.close();
-
-        if (nonce != null)
+        if (result.first()) {
+            result.close();
             throw new OAuthException(ErrorMessages.USED_NONCE);
-
-        PreparedStatement insertStatement = database.getConnection().prepareStatement(NONCE_INSERT_QUERY);
-        insertStatement.setString(1, oauth_nonce);
-        database.getConnection().commit();
-    }
-
-    private final class Nonce {
-        public static final String NONCE = "nonce";
-        public Nonce(ResultSet result) throws SQLException {
-            nonce = result.getString(NONCE);
         }
-
-        public final String getNonce() { return nonce; }
-        private final String nonce;
+        result.close();
+        PreparedStatement insertStatement = database.getConnection().prepareStatement(NONCE_INSERT_QUERY);
+        insertStatement.setInt(1, user.getUserId());
+        insertStatement.setString(2, oauth_nonce);
+        insertStatement.execute();
+        database.getConnection().commit();
     }
 
     private static final String HMAC_SHA1 = "HmacSHA1";
@@ -312,5 +307,4 @@ public class HeaderVerifier {
     private OAuthException exception;
     private Consumer consumer;
     private User user;
-    private Nonce nonce;
 }
