@@ -67,6 +67,7 @@ public class HeaderVerifier {
         private static final String INVALID_OAUTH_TOKEN = "Invalid OAuth token";
         private static final String INVALID_FIELD_IN_AUTHHEADER = "There's an invalid parameter in the Authorization header";
         private static final String INVALID_PARAMETER = "Invalid parameter";
+        private static final String USED_NONCE = "This nonce is already used!";
     }
 
     private static final class OAuthParameters {
@@ -186,6 +187,42 @@ public class HeaderVerifier {
         private final int user_id;
     }
 
+    private static final String NONCE_CHECKING_QUERY = "SELECT nonce " +
+            "FROM nonces " +
+            "WHERE nonce = ? " +
+            "LIMIT 1";
+    private static final String NONCE_INSERT_QUERY = "INSERT INTO nonces " +
+            "(`id`, `nonce`) " +
+            "VALUES (NULL, ?);";
+
+
+    public void verifyOAuthNonce(Database database) throws SQLException, OAuthException {
+        final String oauth_nonce = oauth_params.get(OAuthParameters.OAUTH_NONCE);
+        PreparedStatement statement = database.getConnection().prepareStatement(NONCE_CHECKING_QUERY);
+        statement.setString(1, oauth_nonce);
+        ResultSet result = statement.executeQuery();
+        if (result.first())
+            nonce = new Nonce(result);
+        result.close();
+
+        if (nonce != null)
+            throw new OAuthException(ErrorMessages.USED_NONCE);
+
+        PreparedStatement insertStatement = database.getConnection().prepareStatement(NONCE_INSERT_QUERY);
+        insertStatement.setString(1, oauth_nonce);
+        database.getConnection().commit();
+    }
+
+    private final class Nonce {
+        public static final String NONCE = "nonce";
+        public Nonce(ResultSet result) throws SQLException {
+            nonce = result.getString(NONCE);
+        }
+
+        public final String getNonce() { return nonce; }
+        private final String nonce;
+    }
+
     private static final String HMAC_SHA1 = "HmacSHA1";
 
     public void checkSignature(boolean https) throws UnsupportedEncodingException, URISyntaxException {
@@ -275,4 +312,5 @@ public class HeaderVerifier {
     private OAuthException exception;
     private Consumer consumer;
     private User user;
+    private Nonce nonce;
 }

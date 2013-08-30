@@ -56,6 +56,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 database = DatabasePool.getDBConnection();
                 headerVerifier.verifyConsumer(database);
                 headerVerifier.verifyOAuthToken(database);
+                headerVerifier.verifyOAuthNonce(database);
                 headerVerifier.checkSignature(false);
             } catch (OAuthException e) {
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()

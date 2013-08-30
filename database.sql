@@ -76,6 +76,13 @@ CREATE TABLE IF NOT EXISTS `user_tokens` (
   PRIMARY KEY (`user_id`,`application_id`),
   KEY `application_user_tokens` (`application_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `nonces` (
+  `id` int(25) NOT NULL AUTO_INCREMENT,
+  `nonce` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MEMORY  DEFAULT CHARSET=latin1;
+
 DROP TRIGGER IF EXISTS `generate_random_user_tokens`;
 DELIMITER //
 CREATE TRIGGER `generate_random_user_tokens` BEFORE INSERT ON `user_tokens`
