@@ -257,7 +257,7 @@ public class HeaderVerifier {
             rawbuilder.append('s');
         rawbuilder.append(COLON_SLASH_SLASH);
         rawbuilder.append(URLEncoder.encode(request.headers().get(HOST), UTF_8));
-        final URI uri = new URI(request.getUri());
+        uri = new URI(request.getUri());
         rawbuilder.append(URLEncoder.encode(uri.getPath(), UTF_8));
         rawbuilder.append('&');
         if (uri.getQuery() == null) {
@@ -303,10 +303,13 @@ public class HeaderVerifier {
             exception.addError(message);
     }
 
+    public URI getUri() { return uri; }
+
     private final String auth_header;
     private final HttpRequest request;
     private final LinkedHashMap<String, String> oauth_params;
     private OAuthException exception;
     private Consumer consumer;
     private User user;
+    private URI uri;
 }

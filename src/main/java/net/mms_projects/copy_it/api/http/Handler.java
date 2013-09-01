@@ -26,14 +26,18 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.util.CharsetUtil;
+import net.mms_projects.copy_it.api.http.pages.TestPage;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
 import net.mms_projects.copy_it.server.database.DatabasePool;
+
+import java.util.HashMap;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
@@ -41,10 +45,17 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
 
 public class Handler extends SimpleChannelInboundHandler<HttpObject> {
+    private static final class Pages {
+        private static final HashMap<String, Page> oauth_pages = new HashMap<String, Page>();
+        static {
+            oauth_pages.put("/test", new TestPage());
+        }
+    }
     protected void messageReceived(final ChannelHandlerContext chx, final HttpObject o) throws Exception {
         System.err.println(o.getClass().getName());
         if (o instanceof HttpRequest) {
@@ -58,6 +69,20 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 headerVerifier.verifyOAuthToken(database);
                 headerVerifier.verifyOAuthNonce(database);
                 headerVerifier.checkSignature(false);
+                Page page = Pages.oauth_pages.get(headerVerifier.getUri().getPath());
+                if (page != null) {
+                    final FullHttpResponse response = page.onGetRequest(request);
+                    if (isKeepAlive(request)) {
+                        response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+                        response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+                        chx.write(response);
+                    } else
+                        chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                } else {
+                    final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                            ,NOT_FOUND, Unpooled.copiedBuffer("404", CharsetUtil.UTF_8));
+                    chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                }
             } catch (OAuthException e) {
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
@@ -68,7 +93,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                         ,INTERNAL_SERVER_ERROR);
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
             }
-        } else if (o instanceof HttpContent) {
+        } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST) {
             final HttpContent httpContent = (HttpContent) o;
             final ByteBuf content = httpContent.content();
             System.err.println("POST Data: " + content.toString(CharsetUtil.UTF_8));
