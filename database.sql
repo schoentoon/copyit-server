@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS `applications` (
 CREATE TABLE IF NOT EXISTS `clipboard_data` (
   `user_id` bigint(20) NOT NULL,
   `data` text NOT NULL,
-  `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  `last_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `consumers` (
