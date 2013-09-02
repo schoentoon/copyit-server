@@ -108,10 +108,10 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                     chx.write(response);
                 } else
                     chx.write(response).addListener(ChannelFutureListener.CLOSE);
-                if (database != null)
-                    database.free();
             }
         }
+        if (o instanceof LastHttpContent && database != null)
+            database.free();
     }
 
     private final StringBuilder buf = new StringBuilder();
