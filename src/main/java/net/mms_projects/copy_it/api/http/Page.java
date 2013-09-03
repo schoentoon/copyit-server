@@ -19,7 +19,16 @@ package net.mms_projects.copy_it.api.http;
 
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import net.mms_projects.copy_it.server.database.Database;
 
 public abstract class Page {
-    public abstract FullHttpResponse onGetRequest(final HttpRequest request) throws Exception;
+    public abstract FullHttpResponse onGetRequest(final HttpRequest request
+                                                 ,final Database database
+                                                 ,int user_id) throws Exception;
+
+    public abstract FullHttpResponse onPostRequest(final HttpRequest request
+                                                  ,final HttpPostRequestDecoder postRequestDecoder
+                                                  ,final Database database
+                                                  ,int user_id) throws Exception;
 }

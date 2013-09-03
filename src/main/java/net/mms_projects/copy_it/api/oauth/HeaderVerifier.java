@@ -304,6 +304,7 @@ public class HeaderVerifier {
     }
 
     public URI getUri() { return uri; }
+    public int getUserId() { return user.getUserId(); }
 
     private final String auth_header;
     private final HttpRequest request;

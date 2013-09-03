@@ -21,16 +21,23 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.Page;
+import net.mms_projects.copy_it.server.database.Database;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class TestPage extends Page {
     @Override
-    public FullHttpResponse onGetRequest(HttpRequest request) throws Exception {
+    public FullHttpResponse onGetRequest(HttpRequest request, Database database, int user_id) throws Exception {
         FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                ,OK, Unpooled.copiedBuffer("Hai :D, this is just a simple test page.", CharsetUtil.UTF_8));
+                ,OK, Unpooled.copiedBuffer("Hai user " + user_id + " :D, this is just a simple test page.", CharsetUtil.UTF_8));
         return response;
+    }
+
+    @Override
+    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int user_id) throws Exception {
+        return onGetRequest(request, database, user_id);
     }
 }
