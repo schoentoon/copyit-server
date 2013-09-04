@@ -38,6 +38,7 @@ import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
 import net.mms_projects.copy_it.server.database.DatabasePool;
 
+import java.net.URI;
 import java.util.HashMap;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
@@ -60,31 +61,32 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
         if (o instanceof HttpRequest) {
             final HttpRequest http = (HttpRequest) o;
             this.request = http;
+            final URI uri = new URI(request.getUri());
+            page = Pages.oauth_pages.get(uri.getPath());
+            if (page == null) {
+                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                        ,NOT_FOUND, Unpooled.copiedBuffer("404", CharsetUtil.UTF_8));
+                chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                return;
+            }
             buf.setLength(0);
             try {
-                headerVerifier = new HeaderVerifier(http);
+                headerVerifier = new HeaderVerifier(http, uri);
                 database = DatabasePool.getDBConnection();
                 headerVerifier.verifyConsumer(database);
                 headerVerifier.verifyOAuthToken(database);
                 headerVerifier.verifyOAuthNonce(database);
                 headerVerifier.checkSignature(false);
-                page = Pages.oauth_pages.get(headerVerifier.getUri().getPath());
-                if (page != null) {
-                    if (request.getMethod() == HttpMethod.GET) {
-                        final FullHttpResponse response = page.onGetRequest(request, database, headerVerifier.getUserId());
-                        if (isKeepAlive(request)) {
-                            response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
-                            response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-                            chx.write(response);
-                        } else
-                            chx.write(response).addListener(ChannelFutureListener.CLOSE);
-                    } else if (request.getMethod() == HttpMethod.POST)
-                        postRequestDecoder = new HttpPostRequestDecoder(request);
-                } else {
-                    final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                            ,NOT_FOUND, Unpooled.copiedBuffer("404", CharsetUtil.UTF_8));
-                    chx.write(response).addListener(ChannelFutureListener.CLOSE);
-                }
+                if (request.getMethod() == HttpMethod.GET) {
+                    final FullHttpResponse response = page.onGetRequest(request, database, headerVerifier.getUserId());
+                    if (isKeepAlive(request)) {
+                        response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
+                        response.headers().set(CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+                        chx.write(response);
+                    } else
+                        chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                } else if (request.getMethod() == HttpMethod.POST)
+                    postRequestDecoder = new HttpPostRequestDecoder(request);
             } catch (OAuthException e) {
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));

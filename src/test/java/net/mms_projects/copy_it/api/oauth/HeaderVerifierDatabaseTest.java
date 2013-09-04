@@ -30,6 +30,8 @@ import net.mms_projects.copy_it.server.database.OutOfConnectionsException;
 import org.junit.Test;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
@@ -50,7 +52,7 @@ public class HeaderVerifierDatabaseTest {
     }
 
     @Test(timeout=1000)
-    public void verifyConsumer() throws OAuthException, SQLException, OutOfConnectionsException {
+    public void verifyConsumer() throws OAuthException, SQLException, OutOfConnectionsException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -61,13 +63,13 @@ public class HeaderVerifierDatabaseTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        HeaderVerifier headerVerifier = new HeaderVerifier(request);
+        HeaderVerifier headerVerifier = new HeaderVerifier(request, new URI(request.getUri()));
         Database database = DatabasePool.getDBConnection();
         headerVerifier.verifyConsumer(database);
     }
 
     @Test(expected=OAuthException.class,timeout=1000)
-    public void verifyInvalidConsumer() throws OAuthException, SQLException, OutOfConnectionsException {
+    public void verifyInvalidConsumer() throws OAuthException, SQLException, OutOfConnectionsException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"This is a totally invalid consumer key\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -78,13 +80,13 @@ public class HeaderVerifierDatabaseTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        HeaderVerifier headerVerifier = new HeaderVerifier(request);
+        HeaderVerifier headerVerifier = new HeaderVerifier(request, new URI(request.getUri()));
         Database database = DatabasePool.getDBConnection();
         headerVerifier.verifyConsumer(database);
     }
 
     @Test(timeout=1000)
-    public void verifyUserToken() throws OAuthException, OutOfConnectionsException, SQLException {
+    public void verifyUserToken() throws OAuthException, OutOfConnectionsException, SQLException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -95,14 +97,14 @@ public class HeaderVerifierDatabaseTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        HeaderVerifier headerVerifier = new HeaderVerifier(request);
+        HeaderVerifier headerVerifier = new HeaderVerifier(request, new URI(request.getUri()));
         Database database = DatabasePool.getDBConnection();
         headerVerifier.verifyConsumer(database);
         headerVerifier.verifyOAuthToken(database);
     }
 
     @Test(expected=OAuthException.class,timeout=1000)
-    public void verifyInvalidUserToken() throws OAuthException, OutOfConnectionsException, SQLException {
+    public void verifyInvalidUserToken() throws OAuthException, OutOfConnectionsException, SQLException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -113,14 +115,14 @@ public class HeaderVerifierDatabaseTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        HeaderVerifier headerVerifier = new HeaderVerifier(request);
+        HeaderVerifier headerVerifier = new HeaderVerifier(request, new URI(request.getUri()));
         Database database = DatabasePool.getDBConnection();
         headerVerifier.verifyConsumer(database);
         headerVerifier.verifyOAuthToken(database);
     }
 
     @Test(expected=OAuthException.class,timeout=1000)
-    public void replayAttack() throws OAuthException, OutOfConnectionsException, SQLException {
+    public void replayAttack() throws OAuthException, OutOfConnectionsException, SQLException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -131,7 +133,7 @@ public class HeaderVerifierDatabaseTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        HeaderVerifier headerVerifier = new HeaderVerifier(request);
+        HeaderVerifier headerVerifier = new HeaderVerifier(request, new URI(request.getUri()));
         Database database = DatabasePool.getDBConnection();
         headerVerifier.verifyConsumer(database);
         headerVerifier.verifyOAuthToken(database);

@@ -24,6 +24,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import org.junit.Test;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.SecureRandom;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
@@ -32,20 +34,20 @@ public class HeaderVerifierTest {
     private final SecureRandom random = new SecureRandom();
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void noAuthHeader() throws OAuthException {
+    public void noAuthHeader() throws OAuthException, URISyntaxException {
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void noRealmPresent() throws OAuthException {
+    public void noRealmPresent() throws OAuthException, URISyntaxException {
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, "A totally invalid authorization header.");
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void missingOAuthConsumer() throws OAuthException {
+    public void missingOAuthConsumer() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
@@ -55,11 +57,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void missingOAuthNonce() throws OAuthException {
+    public void missingOAuthNonce() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
@@ -69,11 +71,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void missingOAuthTimestamp() throws OAuthException {
+    public void missingOAuthTimestamp() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -83,11 +85,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void testTimestampTooLate() throws OAuthException {
+    public void testTimestampTooLate() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -98,11 +100,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void testTimestampTooEarly() throws OAuthException {
+    public void testTimestampTooEarly() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -113,11 +115,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void missingOAuthSignatureMethod() throws OAuthException {
+    public void missingOAuthSignatureMethod() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -127,11 +129,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void invalidOAuthSignatureMethod() throws OAuthException {
+    public void invalidOAuthSignatureMethod() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -142,11 +144,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void missingOAuthVersion() throws OAuthException {
+    public void missingOAuthVersion() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -156,11 +158,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void invalidOAuthVersion() throws OAuthException {
+    public void invalidOAuthVersion() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -171,11 +173,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void missingOAuthToken() throws OAuthException {
+    public void missingOAuthToken() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -185,11 +187,11 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void missingOAuthSignature() throws OAuthException {
+    public void missingOAuthSignature() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -199,11 +201,11 @@ public class HeaderVerifierTest {
                 "oauth_token=\"oauth_token\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void invalidParameter() throws OAuthException {
+    public void invalidParameter() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -215,11 +217,11 @@ public class HeaderVerifierTest {
                 "i_am_invalid=\"I'm totally fake\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(expected=OAuthException.class,timeout=500)
-    public void tooLongNonce() throws OAuthException {
+    public void tooLongNonce() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + Utils.generateNonce() + "\", " +
@@ -231,11 +233,11 @@ public class HeaderVerifierTest {
                 "i_am_invalid=\"I'm totally fake\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 
     @Test(timeout=500)
-    public void validRequest() throws OAuthException {
+    public void validRequest() throws OAuthException, URISyntaxException {
         String header = "OAuth realm=\"\", " +
                 "oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
                 "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
@@ -246,6 +248,6 @@ public class HeaderVerifierTest {
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
-        new HeaderVerifier(request);
+        new HeaderVerifier(request, new URI(request.getUri()));
     }
 }

@@ -91,7 +91,7 @@ public class HeaderVerifier {
     private static final String VALID_SIGNATURE_METHOD = "HMAC-SHA1";
     private static final String OAUTH_ = "oauth_";
 
-    public HeaderVerifier(final HttpRequest request) throws OAuthException {
+    public HeaderVerifier(final HttpRequest request, final URI uri) throws OAuthException {
         if (!request.headers().contains(AUTHORIZATION))
             throw new OAuthException(ErrorMessages.NO_AUTH_HEADER);
         auth_header = request.headers().get(AUTHORIZATION);
@@ -146,6 +146,7 @@ public class HeaderVerifier {
         if (exception != null)
             throw exception;
         this.request = request;
+        this.uri = uri;
     }
 
     public void verifyConsumer(Database database) throws SQLException, OAuthException {
