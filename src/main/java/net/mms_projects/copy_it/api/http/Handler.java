@@ -32,6 +32,7 @@ import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.pages.TestPage;
+import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
@@ -91,6 +92,11 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
+            } catch (ErrorException e) {
+                e.printStackTrace();
+                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                        ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
+                chx.write(response).addListener(ChannelFutureListener.CLOSE);
             } catch (Exception e) {
                 e.printStackTrace();
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
@@ -109,6 +115,11 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                         chx.write(response);
                     } else
                         chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                } catch (ErrorException e) {
+                    e.printStackTrace();
+                    final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                            ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
+                    chx.write(response).addListener(ChannelFutureListener.CLOSE);
                 } catch (Exception e) {
                     e.printStackTrace();
                     final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
