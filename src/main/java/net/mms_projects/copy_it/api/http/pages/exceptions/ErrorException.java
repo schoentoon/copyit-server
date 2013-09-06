@@ -17,10 +17,14 @@
 
 package net.mms_projects.copy_it.api.http.pages.exceptions;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 
 public class ErrorException extends Exception {
     protected static final String ERROR = "error";
@@ -30,6 +34,7 @@ public class ErrorException extends Exception {
         super();
         errors = new ArrayList<String>();
         errors.add(message);
+        status = INTERNAL_SERVER_ERROR;
     }
 
     public void addError(String message) {
@@ -58,5 +63,14 @@ public class ErrorException extends Exception {
         return json;
     }
 
+    public HttpResponseStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(HttpResponseStatus status) {
+        this.status = status;
+    }
+
     protected final List<String> errors;
+    protected HttpResponseStatus status;
 }

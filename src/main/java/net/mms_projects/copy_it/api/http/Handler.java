@@ -35,7 +35,6 @@ import net.mms_projects.copy_it.api.http.pages.TestPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
-import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
 import net.mms_projects.copy_it.server.database.DatabasePool;
 
@@ -46,7 +45,6 @@ import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
-import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
 
 public class Handler extends SimpleChannelInboundHandler<HttpObject> {
     private static final class Pages {
@@ -91,15 +89,10 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                         chx.write(response).addListener(ChannelFutureListener.CLOSE);
                 } else if (request.getMethod() == HttpMethod.POST)
                     postRequestDecoder = new HttpPostRequestDecoder(request);
-            } catch (OAuthException e) {
-                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
-                HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
-                chx.write(response).addListener(ChannelFutureListener.CLOSE);
             } catch (ErrorException e) {
                 e.printStackTrace();
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,INTERNAL_SERVER_ERROR, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
+                        ,e.getStatus(), Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
                 HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
             } catch (Exception e) {
@@ -125,7 +118,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 } catch (ErrorException e) {
                     e.printStackTrace();
                     final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                            ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
+                            ,e.getStatus(), Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
                     HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
                     chx.write(response).addListener(ChannelFutureListener.CLOSE);
                 } catch (Exception e) {

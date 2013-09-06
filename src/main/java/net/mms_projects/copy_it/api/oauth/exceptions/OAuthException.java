@@ -19,8 +19,11 @@ package net.mms_projects.copy_it.api.oauth.exceptions;
 
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.UNAUTHORIZED;
+
 public class OAuthException extends ErrorException {
     public OAuthException(String message) {
         super(message);
+        status = UNAUTHORIZED;
     }
 }
