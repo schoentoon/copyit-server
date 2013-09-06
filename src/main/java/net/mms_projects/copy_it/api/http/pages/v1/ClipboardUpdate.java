@@ -1,14 +1,20 @@
 package net.mms_projects.copy_it.api.http.pages.v1;
 
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpData;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
+import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.Page;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.server.database.Database;
+import org.json.JSONObject;
 import java.sql.PreparedStatement;
+
+import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class ClipboardUpdate extends Page {
     private static final String MISSING_DATA_PARAMETER = "Missing the data parameter.";
@@ -31,7 +37,9 @@ public class ClipboardUpdate extends Page {
             statement.setString(2, ((HttpData) data).getString());
             statement.execute();
         } else
-            throw new Exception("LOL NOPE");
-        return null;
+            throw new ErrorException(MISSING_DATA_PARAMETER);
+        final JSONObject json = new JSONObject();
+        return new DefaultFullHttpResponse(request.getProtocolVersion()
+                ,OK, Unpooled.copiedBuffer(json.toString(), CharsetUtil.UTF_8));
     }
 }
