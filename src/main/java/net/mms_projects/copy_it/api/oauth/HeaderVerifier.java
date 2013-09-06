@@ -17,8 +17,12 @@
 
 package net.mms_projects.copy_it.api.oauth;
 
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.multipart.HttpData;
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
 import net.mms_projects.copy_it.api.oauth.exceptions.OAuthException;
 import net.mms_projects.copy_it.server.database.Database;
@@ -26,6 +30,7 @@ import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,6 +44,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -223,9 +229,9 @@ public class HeaderVerifier {
 
     private static final String HMAC_SHA1 = "HmacSHA1";
 
-    public void checkSignature(boolean https) throws UnsupportedEncodingException, URISyntaxException {
+    public void checkSignature(HttpPostRequestDecoder postRequestDecoder, boolean https) throws UnsupportedEncodingException, URISyntaxException {
         final String signed_with = oauth_params.get(OAuthParameters.OAUTH_SIGNATURE);
-        final String raw = createRaw(https);
+        final String raw = createRaw(postRequestDecoder, https);
         final String secretkey = consumer.getSecretKey() + "&" + user.getSecretKey();
         try {
             final Key signingKey = new SecretKeySpec(secretkey.getBytes(), HMAC_SHA1);
@@ -235,7 +241,6 @@ public class HeaderVerifier {
             final String signature = new String(Base64.encodeBase64(rawHmac));
             System.err.println("Signed with: " + URLDecoder.decode(signed_with, UTF_8));
             System.err.println("Should be::: " + signature);
-            System.err.println(URLDecoder.decode(signed_with, UTF_8).equals(signature));
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (InvalidKeyException e) {
@@ -248,8 +253,10 @@ public class HeaderVerifier {
     private static final String UTF_8 = "UTF-8";
     private static final String EQUALS = "%3D";
     private static final String AND = "%26";
+    private static final String PLUS = "+";
+    private static final String PLUS_ENCODED = "%20";
 
-    private String createRaw(boolean https) throws UnsupportedEncodingException, URISyntaxException {
+    private String createRaw(HttpPostRequestDecoder post, boolean https) throws UnsupportedEncodingException, URISyntaxException {
         final StringBuilder rawbuilder = new StringBuilder();
         rawbuilder.append(request.getMethod().toString());
         rawbuilder.append('&');
@@ -261,7 +268,7 @@ public class HeaderVerifier {
         uri = new URI(request.getUri());
         rawbuilder.append(URLEncoder.encode(uri.getPath(), UTF_8));
         rawbuilder.append('&');
-        if (uri.getQuery() == null) {
+        if (uri.getQuery() == null && request.getMethod() == HttpMethod.GET) {
             for (int i = 0; i < OAuthParameters.KEYS.length; i++) {
                 rawbuilder.append(OAuthParameters.KEYS[i]);
                 rawbuilder.append(EQUALS);
@@ -270,13 +277,32 @@ public class HeaderVerifier {
                     rawbuilder.append(AND);
             }
         } else {
-            final QueryStringDecoder querydecoder = new QueryStringDecoder(uri);
-            final Map<String, List<String>> parameters = querydecoder.parameters();
-            final Set<String> keyset = parameters.keySet();
-            final Iterator<String> iter = keyset.iterator();
             final List<String> keys = new ArrayList<String>();
-            while (iter.hasNext())
-                keys.add(iter.next());
+            final Map<String, String> parameters = new HashMap<String, String>();
+            if (request.getMethod() == HttpMethod.GET) {
+                final QueryStringDecoder querydecoder = new QueryStringDecoder(uri);
+                final Map<String, List<String>> get_parameters = querydecoder.parameters();
+                final Set<String> keyset = parameters.keySet();
+                final Iterator<String> iter = keyset.iterator();
+                while (iter.hasNext()) {
+                    final String key = iter.next();
+                    keys.add(key);
+                    parameters.put(key, get_parameters.get(key).get(0));
+                }
+            } else if (request.getMethod() == HttpMethod.POST) {
+                final List<InterfaceHttpData> post_parameters = post.getBodyHttpDatas();
+                final Iterator<InterfaceHttpData> iter = post_parameters.iterator();
+                while (iter.hasNext()) {
+                    final InterfaceHttpData data = iter.next();
+                    try {
+                        final HttpData httpData = (HttpData) data;
+                        parameters.put(httpData.getName(), URLEncoder.encode(httpData.getString(), UTF_8).replace(PLUS, PLUS_ENCODED));
+                        keys.add(httpData.getName());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             for (int i = 0; i < OAuthParameters.KEYS.length; i++)
                 keys.add(OAuthParameters.KEYS[i]);
             Collections.sort(keys);
@@ -287,8 +313,10 @@ public class HeaderVerifier {
                 rawbuilder.append(EQUALS);
                 if (key.startsWith(OAUTH_))
                     rawbuilder.append(URLEncoder.encode(oauth_params.get(key), UTF_8));
-                else
-                    rawbuilder.append(URLEncoder.encode(parameters.get(key).get(0), UTF_8));
+                else {
+                    System.err.println(parameters.get(key));
+                    rawbuilder.append(URLEncoder.encode(parameters.get(key), UTF_8));
+                }
                 if (i != (length - 1))
                     rawbuilder.append(AND);
             }

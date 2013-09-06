@@ -77,8 +77,8 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 headerVerifier.verifyConsumer(database);
                 headerVerifier.verifyOAuthToken(database);
                 headerVerifier.verifyOAuthNonce(database);
-                headerVerifier.checkSignature(false);
                 if (request.getMethod() == HttpMethod.GET) {
+                    headerVerifier.checkSignature(null, false);
                     final FullHttpResponse response = page.onGetRequest(request, database, headerVerifier.getUserId());
                     if (isKeepAlive(request)) {
                         response.headers().set(CONTENT_LENGTH, response.content().readableBytes());
@@ -107,6 +107,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             final HttpContent httpContent = (HttpContent) o;
             postRequestDecoder.offer(httpContent);
             if (o instanceof LastHttpContent && page != null) {
+                headerVerifier.checkSignature(postRequestDecoder, false);
                 try {
                     final FullHttpResponse response = page.onPostRequest(request, postRequestDecoder, database, headerVerifier.getUserId());
                     if (isKeepAlive(request)) {

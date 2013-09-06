@@ -15,6 +15,6 @@ oauth_request.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), consumer, tok
 conn = httplib.HTTPConnection("%s:%d" % ('127.0.0.1', 8080))
 headers = {'Content-Type' : 'application/x-www-form-urlencoded' }
 headers.update(oauth_request.to_header())
-conn.request('POST', RESOURCE_URL + "?atest=true", body=urllib.urlencode(parameters), headers=headers)
+conn.request('POST', RESOURCE_URL, body=urllib.urlencode(parameters), headers=headers)
 response = conn.getresponse()
 print response.read()
