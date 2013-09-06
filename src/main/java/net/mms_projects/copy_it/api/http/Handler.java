@@ -99,7 +99,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             } catch (ErrorException e) {
                 e.printStackTrace();
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,UNAUTHORIZED, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
+                        ,INTERNAL_SERVER_ERROR, Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
                 HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
             } catch (Exception e) {
@@ -112,8 +112,8 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             final HttpContent httpContent = (HttpContent) o;
             postRequestDecoder.offer(httpContent);
             if (o instanceof LastHttpContent && page != null) {
-                headerVerifier.checkSignature(postRequestDecoder, false);
                 try {
+                    headerVerifier.checkSignature(postRequestDecoder, false);
                     final FullHttpResponse response = page.onPostRequest(request, postRequestDecoder, database, headerVerifier.getUserId());
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
                     HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);

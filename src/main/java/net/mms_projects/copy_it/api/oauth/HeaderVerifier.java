@@ -75,6 +75,7 @@ public class HeaderVerifier {
         private static final String INVALID_PARAMETER = "Invalid parameter";
         private static final String USED_NONCE = "This nonce was used earlier already.";
         private static final String NONCE_TOO_LONG = "Your nonce is too long, maximum length is 8.";
+        private static final String INVALID_SIGNATURE = "Invalid signature.";
     }
 
     private static final class OAuthParameters {
@@ -229,7 +230,7 @@ public class HeaderVerifier {
 
     private static final String HMAC_SHA1 = "HmacSHA1";
 
-    public void checkSignature(HttpPostRequestDecoder postRequestDecoder, boolean https) throws UnsupportedEncodingException, URISyntaxException {
+    public void checkSignature(HttpPostRequestDecoder postRequestDecoder, boolean https) throws UnsupportedEncodingException, URISyntaxException, OAuthException {
         final String signed_with = oauth_params.get(OAuthParameters.OAUTH_SIGNATURE);
         final String raw = createRaw(postRequestDecoder, https);
         final String secretkey = consumer.getSecretKey() + "&" + user.getSecretKey();
@@ -241,6 +242,8 @@ public class HeaderVerifier {
             final String signature = new String(Base64.encodeBase64(rawHmac));
             System.err.println("Signed with: " + URLDecoder.decode(signed_with, UTF_8));
             System.err.println("Should be::: " + signature);
+            if (!URLDecoder.decode(signed_with, UTF_8).equals(signature))
+                throw new OAuthException(ErrorMessages.INVALID_SIGNATURE);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (InvalidKeyException e) {

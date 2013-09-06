@@ -19,13 +19,28 @@ package net.mms_projects.copy_it.api.http.pages.exceptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ErrorException extends Exception {
-    private static final String ERROR = "error";
-    private static final String ERROR_MESSAGES = "error_messages";
+    protected static final String ERROR = "error";
+    protected static final String ERROR_MESSAGES = "error_messages";
 
-    public ErrorException(String msg) {
-        super(msg);
+    public ErrorException(String message) {
+        super();
+        errors = new ArrayList<String>();
+        errors.add(message);
+    }
+
+    public void addError(String message) {
+        errors.add(message);
+    }
+
+    public String getMessage() {
+        final StringBuilder output = new StringBuilder();
+        for (int i = 0; i < errors.size(); i++)
+            output.append(errors.get(i) + "\n");
+        return output.toString();
     }
 
     public String toString() {
@@ -36,10 +51,12 @@ public class ErrorException extends Exception {
         final JSONObject json = new JSONObject();
         try {
             json.put(ERROR, true);
-            json.put(ERROR_MESSAGES, new String[]{getMessage()});
+            json.put(ERROR_MESSAGES, errors);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return json;
     }
+
+    protected final List<String> errors;
 }
