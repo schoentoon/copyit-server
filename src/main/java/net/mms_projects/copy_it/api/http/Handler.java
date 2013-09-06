@@ -34,6 +34,7 @@ import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.pages.TestPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
+import net.mms_projects.copy_it.api.http.pages.v1.CoffeePlease;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 import net.mms_projects.copy_it.server.database.DatabasePool;
@@ -52,6 +53,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
         static {
             oauth_pages.put("/test", new TestPage());
             oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
+            oauth_pages.put("/1/coffee/please", new CoffeePlease());
         }
     }
 
