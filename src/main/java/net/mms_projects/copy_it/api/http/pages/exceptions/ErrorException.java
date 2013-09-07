@@ -27,8 +27,7 @@ import java.util.List;
 import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERROR;
 
 public class ErrorException extends Exception {
-    protected static final String ERROR = "error";
-    protected static final String ERROR_MESSAGES = "error_messages";
+    protected static final String ERROR_MESSAGES = "errors";
 
     public ErrorException(String message) {
         super();
@@ -55,7 +54,6 @@ public class ErrorException extends Exception {
     public JSONObject toJSON() {
         final JSONObject json = new JSONObject();
         try {
-            json.put(ERROR, true);
             json.put(ERROR_MESSAGES, errors);
         } catch (JSONException e) {
             e.printStackTrace();
