@@ -37,7 +37,8 @@ public class ClipboardGet extends Page {
     private static final String NO_CONTENT_POSTED = "No content posted yet.";
     private static final String BLOB = "blob";
     private static final String DATA = "data";
-    private static final String SELECT_CONTENT = "SELECT data " +
+    private static final String LAST_UPDATED = "last_updated";
+    private static final String SELECT_CONTENT = "SELECT data, UNIX_TIMESTAMP(last_updated) last_updated " +
                                                  "FROM clipboard_data " +
                                                  "WHERE user_id = ?";
 
@@ -48,6 +49,7 @@ public class ClipboardGet extends Page {
         if (result.first()) {
             final JSONObject json = new JSONObject();
             json.put(BLOB, result.getString(DATA));
+            json.put(LAST_UPDATED, result.getInt(LAST_UPDATED));
             result.close();
             return new DefaultFullHttpResponse(request.getProtocolVersion()
                     ,OK, Unpooled.copiedBuffer(json.toString(), CharsetUtil.UTF_8));
