@@ -35,7 +35,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class ClipboardGet extends Page {
     private static final String NO_CONTENT_POSTED = "No content posted yet.";
-    private static final String BLOB = "blob";
+    private static final String CONTENT = "content";
     private static final String DATA = "data";
     private static final String LAST_UPDATED = "last_updated";
     private static final String SELECT_CONTENT = "SELECT data, UNIX_TIMESTAMP(last_updated) last_updated " +
@@ -48,7 +48,7 @@ public class ClipboardGet extends Page {
         ResultSet result = statement.executeQuery();
         if (result.first()) {
             final JSONObject json = new JSONObject();
-            json.put(BLOB, result.getString(DATA));
+            json.put(CONTENT, result.getString(DATA));
             json.put(LAST_UPDATED, result.getInt(LAST_UPDATED));
             result.close();
             return new DefaultFullHttpResponse(request.getProtocolVersion()
