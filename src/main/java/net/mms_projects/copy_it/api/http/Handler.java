@@ -51,11 +51,12 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 public class Handler extends SimpleChannelInboundHandler<HttpObject> {
     private static final class Pages {
         private static final HashMap<String, Page> oauth_pages = new HashMap<String, Page>();
+        private static final HashMap<String, Page> noauth_pages = new HashMap<String, Page>();
         static {
             oauth_pages.put("/test", new TestPage());
             oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
             oauth_pages.put("/1/clipboard/get", new ClipboardGet());
-            oauth_pages.put("/1/coffee/please", new CoffeePlease());
+            noauth_pages.put("/1/coffee/please", new CoffeePlease());
         }
     }
 
@@ -67,6 +68,19 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             final HttpRequest http = (HttpRequest) o;
             this.request = http;
             final URI uri = new URI(request.getUri());
+            page = Pages.noauth_pages.get(uri.getPath());
+            if (page != null) {
+                database = DatabasePool.getDBConnection();
+                final FullHttpResponse response = page.onGetRequest(request, database, -1);
+                HttpHeaders.setContentLength(response, response.content().readableBytes());
+                HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
+                if (isKeepAlive(request)) {
+                    HttpHeaders.setKeepAlive(response, true);
+                    chx.write(response);
+                } else
+                    chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                return;
+            }
             page = Pages.oauth_pages.get(uri.getPath());
             if (page == null) {
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
@@ -105,7 +119,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                         ,INTERNAL_SERVER_ERROR);
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
             }
-        } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST) {
+        } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST && headerVerifier != null) {
             final HttpContent httpContent = (HttpContent) o;
             postRequestDecoder.offer(httpContent);
             if (o instanceof LastHttpContent && page != null) {
