@@ -24,41 +24,60 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.Page;
+import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class RequestToken extends Page {
-    private static final String CREATE_TOKENS = "INSERT INTO request_tokens (application_id) VALUES (?)";
+    private static final String CREATE_TOKENS = "INSERT INTO request_tokens (application_id, callback_uri) VALUES (?, ?)";
     private static final String GET_LATEST_TOKEN = "SELECT public_key, secret_key " +
                                                    "FROM request_tokens " +
                                                    "WHERE aid = LAST_INSERT_ID()";
 
     private static final String OAUTH_TOKEN = "oauth_token=";
     private static final String OAUTH_TOKEN_SECRET = "&oauth_token_secret=";
+    private static final String OAUTH_CALLBACK_CONFIRMED = "&oauth_callback_confirmed=true";
     private static final String PUBLIC_KEY = "public_key";
     private static final String SECRET_KEY = "secret_key";
+
+    private static final String MISSING_OAUTH_CALLBACK = "Missing OAuth callback uri.";
+    private static final String INVALID_CALLBACK_URI = "Invalid callback uri.";
+    private static final String URI_TOO_LONG = "Your callback uri is too long (longer than 1024 characters).";
 
     public FullHttpResponse onGetRequest(HttpRequest request, Database database, int user_id) throws Exception {
         URI uri = new URI(request.getUri());
         HeaderVerifier headerVerifier = new HeaderVerifier(request, uri, HeaderVerifier.Flags.MAY_MISS_TOKEN);
+        String callback = headerVerifier.getCallbackUri();
+        if (callback == null)
+            throw new ErrorException(MISSING_OAUTH_CALLBACK);
+        try {
+            new URI(callback);
+        } catch (URISyntaxException e) {
+            throw new ErrorException(INVALID_CALLBACK_URI);
+        }
+        if (callback.length() > 1024)
+            throw new ErrorException(URI_TOO_LONG);
         headerVerifier.verifyConsumer(database);
         PreparedStatement statement = database.getConnection().prepareStatement(CREATE_TOKENS);
         statement.setInt(1, headerVerifier.getConsumerId());
+        statement.setString(2, callback);
         if (statement.executeUpdate() == 1) {
             statement = database.getConnection().prepareStatement(GET_LATEST_TOKEN);
             ResultSet result = statement.executeQuery();
             if (result.first()) {
-                StringBuilder builder = new StringBuilder(160);
+                StringBuilder builder = new StringBuilder(190);
                 builder.append(OAUTH_TOKEN);
                 builder.append(result.getString(PUBLIC_KEY));
                 builder.append(OAUTH_TOKEN_SECRET);
                 builder.append(result.getString(SECRET_KEY));
+                builder.append(OAUTH_CALLBACK_CONFIRMED);
                 result.close();
                 return new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,OK, Unpooled.copiedBuffer(builder.toString(), CharsetUtil.UTF_8));

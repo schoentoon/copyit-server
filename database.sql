@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS `request_tokens` (
   `secret_key` varchar(64) NOT NULL DEFAULT '',
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `aid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Dirty hack because MySQL can''t return last inserted row directly..',
+  `callback_uri` varchar(1024) NOT NULL,
   PRIMARY KEY (`aid`),
   UNIQUE KEY `public_key` (`public_key`),
   KEY `applications` (`application_id`)

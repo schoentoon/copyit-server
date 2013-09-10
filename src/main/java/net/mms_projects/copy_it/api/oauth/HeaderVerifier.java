@@ -86,6 +86,7 @@ public class HeaderVerifier {
         private static final String OAUTH_VERSION = "oauth_version";
         private static final String OAUTH_TOKEN = "oauth_token";
         private static final String OAUTH_SIGNATURE = "oauth_signature";
+        private static final String OAUTH_CALLBACK = "oauth_callback";
         private static final String KEYS[] = { OAUTH_CONSUMER_KEY, OAUTH_NONCE, OAUTH_SIGNATURE_METHOD, OAUTH_TIMESTAMP, OAUTH_TOKEN, OAUTH_VERSION };
     }
 
@@ -346,6 +347,12 @@ public class HeaderVerifier {
     public URI getUri() { return uri; }
     public int getUserId() { return user.getUserId(); }
     public int getConsumerId() { return consumer.getId(); }
+    public String getCallbackUri() throws UnsupportedEncodingException {
+        String callback = oauth_params.get(OAuthParameters.OAUTH_CALLBACK);
+        if (callback == null)
+            return null;
+        return URLDecoder.decode(callback, UTF_8);
+    }
 
     private final String auth_header;
     private final HttpRequest request;
