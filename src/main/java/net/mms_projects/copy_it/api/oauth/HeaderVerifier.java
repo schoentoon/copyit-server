@@ -89,6 +89,10 @@ public class HeaderVerifier {
         private static final String KEYS[] = { OAUTH_CONSUMER_KEY, OAUTH_NONCE, OAUTH_SIGNATURE_METHOD, OAUTH_TIMESTAMP, OAUTH_TOKEN, OAUTH_VERSION };
     }
 
+    public static final class Flags {
+        public static final int MAY_MISS_TOKEN = 0x01;
+    }
+
     private static final String OAUTH_REALM = "OAuth realm=\"\"";
     private static final String COMMA_REGEX = ", ";
     private static final String EQUALS_REGEX = "=";
@@ -99,6 +103,10 @@ public class HeaderVerifier {
     private static final String OAUTH_ = "oauth_";
 
     public HeaderVerifier(final HttpRequest request, final URI uri) throws OAuthException {
+        this(request, uri, 0);
+    }
+
+    public HeaderVerifier(final HttpRequest request, final URI uri, final int flags) throws OAuthException {
         if (!request.headers().contains(AUTHORIZATION))
             throw new OAuthException(ErrorMessages.NO_AUTH_HEADER);
         auth_header = request.headers().get(AUTHORIZATION);
@@ -138,7 +146,7 @@ public class HeaderVerifier {
             error(ErrorMessages.MISSING_VERSION);
         else if (!oauth_params.get(OAuthParameters.OAUTH_VERSION).equals(VALID_OAUTH_VERSION))
             error(ErrorMessages.INVALID_VERSION);
-        if (!oauth_params.containsKey(OAuthParameters.OAUTH_TOKEN))
+        if (((flags & Flags.MAY_MISS_TOKEN) != Flags.MAY_MISS_TOKEN) && !oauth_params.containsKey(OAuthParameters.OAUTH_TOKEN))
             error(ErrorMessages.MISSING_TOKEN);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE))
             error(ErrorMessages.MISSING_SIGNATURE);
@@ -337,6 +345,7 @@ public class HeaderVerifier {
 
     public URI getUri() { return uri; }
     public int getUserId() { return user.getUserId(); }
+    public int getConsumerId() { return consumer.getId(); }
 
     private final String auth_header;
     private final HttpRequest request;

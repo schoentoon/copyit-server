@@ -55,6 +55,35 @@ CREATE TABLE IF NOT EXISTS `google_user_mapping` (
   PRIMARY KEY (`service_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `nonces` (
+  `_id` int(10) unsigned NOT NULL,
+  `nonce` varchar(8) NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`_id`,`nonce`)
+) ENGINE=MEMORY DEFAULT CHARSET=latin1;
+
+CREATE TABLE IF NOT EXISTS `request_tokens` (
+  `application_id` int(10) unsigned NOT NULL,
+  `public_key` varchar(64) NOT NULL DEFAULT '',
+  `secret_key` varchar(64) NOT NULL DEFAULT '',
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `aid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Dirty hack because MySQL can''t return last inserted row directly..',
+  PRIMARY KEY (`aid`),
+  UNIQUE KEY `public_key` (`public_key`),
+  KEY `applications` (`application_id`)
+) ENGINE=MEMORY  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
+DROP TRIGGER IF EXISTS `generate_random_request_tokens`;
+DELIMITER //
+CREATE TRIGGER `generate_random_request_tokens` BEFORE INSERT ON `request_tokens`
+ FOR EACH ROW BEGIN
+    IF new.public_key = '' AND new.secret_key = '' THEN
+        SET new.public_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64)
+           ,new.secret_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64);
+    END IF;
+END
+//
+DELIMITER ;
+
 CREATE TABLE IF NOT EXISTS `ubuntuone_user_mapping` (
   `user_id` int(11) NOT NULL,
   `service_user_id` varchar(128) NOT NULL,
@@ -77,19 +106,10 @@ CREATE TABLE IF NOT EXISTS `user_tokens` (
   PRIMARY KEY (`user_id`,`application_id`),
   KEY `application_user_tokens` (`application_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
-CREATE TABLE IF NOT EXISTS `nonces` (
-  `_id` int(10) unsigned NOT NULL,
-  `nonce` varchar(8) NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`_id`,`nonce`)
-) ENGINE=MEMORY DEFAULT CHARSET=latin1;
-
 DROP TRIGGER IF EXISTS `generate_random_user_tokens`;
 DELIMITER //
 CREATE TRIGGER `generate_random_user_tokens` BEFORE INSERT ON `user_tokens`
  FOR EACH ROW BEGIN
- 
     IF new.public_key = '' AND new.secret_key = '' THEN
         SET new.public_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64)
            ,new.secret_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64);
