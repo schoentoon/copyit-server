@@ -73,14 +73,17 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             page = Pages.noauth_pages.get(uri.getPath());
             if (page != null) {
                 database = DatabasePool.getDBConnection();
-                final FullHttpResponse response = page.onGetRequest(request, database, -1);
-                HttpHeaders.setContentLength(response, response.content().readableBytes());
-                HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
-                if (isKeepAlive(request)) {
-                    HttpHeaders.setKeepAlive(response, true);
-                    chx.write(response);
-                } else
-                    chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                if (request.getMethod() == HttpMethod.GET) {
+                    final FullHttpResponse response = page.onGetRequest(request, database, -1);
+                    HttpHeaders.setContentLength(response, response.content().readableBytes());
+                    HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
+                    if (isKeepAlive(request)) {
+                        HttpHeaders.setKeepAlive(response, true);
+                        chx.write(response);
+                    } else
+                        chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                } else if (request.getMethod() == HttpMethod.POST)
+                    postRequestDecoder = new HttpPostRequestDecoder(request);
                 return;
             }
             page = Pages.oauth_pages.get(uri.getPath());
@@ -121,13 +124,15 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                         ,INTERNAL_SERVER_ERROR);
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
             }
-        } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST && headerVerifier != null) {
+        } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST) {
             final HttpContent httpContent = (HttpContent) o;
             postRequestDecoder.offer(httpContent);
             if (o instanceof LastHttpContent && page != null) {
                 try {
-                    headerVerifier.checkSignature(postRequestDecoder, false);
-                    final FullHttpResponse response = page.onPostRequest(request, postRequestDecoder, database, headerVerifier.getUserId());
+                    if (headerVerifier != null)
+                        headerVerifier.checkSignature(postRequestDecoder, false);
+                    final FullHttpResponse response = page.onPostRequest(request, postRequestDecoder, database
+                                                                        , (headerVerifier == null) ? 0 : headerVerifier.getUserId());
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
                     HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
                     if (isKeepAlive(request)) {

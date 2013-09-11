@@ -27,7 +27,7 @@ class SimpleOAuthClient(oauth.OAuthClient):
     def fetch_request_token(self, oauth_request):
         # via headers
         # -> OAuthToken
-        self.connection.request(oauth_request.http_method, self.request_token_url, headers=oauth_request.to_header())
+        self.connection.request(oauth_request.http_method, self.request_token_url, body="", headers=oauth_request.to_header())
         response = self.connection.getresponse()
         raw = response.read()
         print raw
@@ -65,7 +65,7 @@ def run_example():
     # get request token
     print '* Obtain a request token ...'
     pause()
-    oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, callback=CALLBACK_URL, http_url=client.request_token_url)
+    oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, callback=CALLBACK_URL, http_url=client.request_token_url, http_method='POST')
     oauth_request.sign_request(signature_method_hmac_sha1, consumer, None)
     print 'REQUEST (via headers)'
     print 'parameters: %s' % str(oauth_request.parameters)
