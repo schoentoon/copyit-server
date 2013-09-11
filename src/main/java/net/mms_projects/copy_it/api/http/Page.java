@@ -23,6 +23,11 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import net.mms_projects.copy_it.server.database.Database;
 
 public abstract class Page {
+    public final static class ContentTypes {
+        public static final String JSON_TYPE = "application/json";
+        public static final String PLAIN_TEXT = "plain/text";
+    }
+
     public abstract FullHttpResponse onGetRequest(final HttpRequest request
                                                  ,final Database database
                                                  ,int user_id) throws Exception;
@@ -31,4 +36,8 @@ public abstract class Page {
                                                   ,final HttpPostRequestDecoder postRequestDecoder
                                                   ,final Database database
                                                   ,int user_id) throws Exception;
+
+    public String GetContentType() {
+        return ContentTypes.JSON_TYPE;
+    }
 }

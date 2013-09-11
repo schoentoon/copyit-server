@@ -90,4 +90,8 @@ public class RequestToken extends Page {
     public FullHttpResponse onGetRequest(HttpRequest request, Database database, int user_id) throws Exception {
         throw new UnsupportedOperationException();
     }
+
+    public String GetContentType() {
+        return ContentTypes.PLAIN_TEXT;
+    }
 }

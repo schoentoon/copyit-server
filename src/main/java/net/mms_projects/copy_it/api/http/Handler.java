@@ -62,8 +62,6 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
         }
     }
 
-    private static final String JSON_TYPE = "application/json";
-
     protected void messageReceived(final ChannelHandlerContext chx, final HttpObject o) throws Exception {
         System.err.println(o.getClass().getName());
         if (o instanceof HttpRequest) {
@@ -76,7 +74,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 if (request.getMethod() == HttpMethod.GET) {
                     final FullHttpResponse response = page.onGetRequest(request, database, -1);
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
-                    HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
+                    HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
                     if (isKeepAlive(request)) {
                         HttpHeaders.setKeepAlive(response, true);
                         chx.write(response);
@@ -104,7 +102,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                     headerVerifier.checkSignature(null, false);
                     final FullHttpResponse response = page.onGetRequest(request, database, headerVerifier.getUserId());
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
-                    HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
+                    HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
                     if (isKeepAlive(request)) {
                         HttpHeaders.setKeepAlive(response, true);
                         chx.write(response);
@@ -116,7 +114,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 e.printStackTrace();
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,e.getStatus(), Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
-                HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
+                HttpHeaders.setHeader(response, CONTENT_TYPE, Page.ContentTypes.JSON_TYPE);
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -134,7 +132,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                     final FullHttpResponse response = page.onPostRequest(request, postRequestDecoder, database
                                                                         , (headerVerifier == null) ? 0 : headerVerifier.getUserId());
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
-                    HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
+                    HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
                     if (isKeepAlive(request)) {
                         HttpHeaders.setKeepAlive(response, true);
                         chx.write(response);
@@ -144,7 +142,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                     e.printStackTrace();
                     final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
                             ,e.getStatus(), Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
-                    HttpHeaders.setHeader(response, CONTENT_TYPE, JSON_TYPE);
+                    HttpHeaders.setHeader(response, CONTENT_TYPE, Page.ContentTypes.JSON_TYPE);
                     chx.write(response).addListener(ChannelFutureListener.CLOSE);
                 } catch (Exception e) {
                     e.printStackTrace();
