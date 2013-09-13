@@ -26,6 +26,7 @@ public abstract class Page {
     public final static class ContentTypes {
         public static final String JSON_TYPE = "application/json";
         public static final String PLAIN_TEXT = "plain/text";
+        public static final String PLAIN_HTML = "text/html";
     }
 
     public abstract FullHttpResponse onGetRequest(final HttpRequest request

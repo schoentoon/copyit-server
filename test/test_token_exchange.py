@@ -79,17 +79,19 @@ def run_example():
 
     print '* Authorize the request token ...'
     pause()
-    oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, http_url=client.authorization_url)
-    print 'REQUEST (via url query string)'
-    print 'parameters: %s' % str(oauth_request.parameters)
-    pause()
+    print 'Please login at %s?oauth_token=%s' % (client.authorization_url, token.key)
+    callback_url = raw_input("Please copy paste the complete callback url here: ")
+    #oauth_request = oauth.OAuthRequest.from_token_and_callback(token=token, http_url=client.authorization_url)
+    #print 'REQUEST (via url query string)'
+    #print 'parameters: %s' % str(oauth_request.parameters)
+    #pause()
     # this will actually occur only on some callback
-    response = client.authorize_token(oauth_request)
-    print 'GOT'
-    print response
+    #response = client.authorize_token(oauth_request)
+    #print 'GOT'
+    #print response
     # sad way to get the verifier
     import urlparse, cgi
-    query = urlparse.urlparse(response)[4]
+    query = urlparse.urlparse(callback_url)[4]
     params = cgi.parse_qs(query, keep_blank_values=False)
     verifier = params['oauth_verifier'][0]
     print 'verifier: %s' % verifier

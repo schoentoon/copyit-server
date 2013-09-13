@@ -33,6 +33,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.pages.TestPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.api.http.pages.oauth.Authorize;
 import net.mms_projects.copy_it.api.http.pages.oauth.RequestToken;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardGet;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
@@ -58,6 +59,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
             oauth_pages.put("/1/clipboard/get", new ClipboardGet());
             noauth_pages.put("/oauth/request_token", new RequestToken());
+            noauth_pages.put("/oauth/authorize", new Authorize());
             noauth_pages.put("/1/coffee/please", new CoffeePlease());
         }
     }
