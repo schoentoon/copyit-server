@@ -101,7 +101,7 @@ def run_example():
     print '* Obtain an access token ...'
     pause()
     oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, token=token, verifier=verifier, http_url=client.access_token_url)
-    oauth_request.sign_request(signature_method_plaintext, consumer, token)
+    oauth_request.sign_request(signature_method_hmac_sha1, consumer, token)
     print 'REQUEST (via headers)'
     print 'parameters: %s' % str(oauth_request.parameters)
     pause()

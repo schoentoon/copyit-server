@@ -58,9 +58,11 @@ public class Authorize extends Page {
     }
 
     private static final String CALLBACK_URI = "callback_uri";
+    private static final String VERIFIER = "verifier";
+    private static final String CALLBACK_URI_PARAMETER = "?oauth_verifier=";
     private static final String INVALID_TOKEN = "Invalid token..";
 
-    private static final String SELECT_CALLBACK = "SELECT callback_uri " +
+    private static final String SELECT_CALLBACK = "SELECT callback_uri, verifier " +
                                                   "FROM request_tokens " +
                                                   "WHERE public_key = ? " +
                                                   "AND (NOW() - INTERVAL 5 MINUTE) < timestamp";
@@ -77,9 +79,14 @@ public class Authorize extends Page {
         ResultSet result = statement.executeQuery();
         if (result.first()) {
             final String callback = result.getString(CALLBACK_URI);
+            final String verifier = result.getString(VERIFIER);
             result.close();
+            final StringBuilder output = new StringBuilder();
+            output.append(callback);
+            output.append(CALLBACK_URI_PARAMETER);
+            output.append(verifier);
             DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion(), MOVED_PERMANENTLY);
-            HttpHeaders.addHeader(response, HttpHeaders.Names.LOCATION, callback);
+            HttpHeaders.addHeader(response, HttpHeaders.Names.LOCATION, output.toString());
             return response;
         } else {
             result.close();

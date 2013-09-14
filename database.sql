@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `applications` (
   `_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(64) NOT NULL,
   PRIMARY KEY (`_id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `clipboard_data` (
   `user_id` bigint(20) NOT NULL,
@@ -69,17 +69,19 @@ CREATE TABLE IF NOT EXISTS `request_tokens` (
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `aid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Dirty hack because MySQL can''t return last inserted row directly..',
   `callback_uri` varchar(1024) NOT NULL,
+  `verifier` varchar(32) NOT NULL DEFAULT '',
   PRIMARY KEY (`aid`),
   UNIQUE KEY `public_key` (`public_key`),
   KEY `applications` (`application_id`)
-) ENGINE=MEMORY  DEFAULT CHARSET=latin1 AUTO_INCREMENT=4 ;
+) ENGINE=MEMORY  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
 DROP TRIGGER IF EXISTS `generate_random_request_tokens`;
 DELIMITER //
 CREATE TRIGGER `generate_random_request_tokens` BEFORE INSERT ON `request_tokens`
  FOR EACH ROW BEGIN
     IF new.public_key = '' AND new.secret_key = '' THEN
         SET new.public_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64)
-           ,new.secret_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64);
+           ,new.secret_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64)
+           ,new.verifier = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,32);
     END IF;
 END
 //
@@ -97,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `user_pass` char(60) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `user_name` (`user_email`)
-) ENGINE=InnoDB  DEFAULT CHARSET=latin1 AUTO_INCREMENT=2 ;
+) ENGINE=InnoDB  DEFAULT CHARSET=latin1;
 
 CREATE TABLE IF NOT EXISTS `user_tokens` (
   `user_id` int(10) unsigned NOT NULL,
@@ -111,6 +113,7 @@ DROP TRIGGER IF EXISTS `generate_random_user_tokens`;
 DELIMITER //
 CREATE TRIGGER `generate_random_user_tokens` BEFORE INSERT ON `user_tokens`
  FOR EACH ROW BEGIN
+ 
     IF new.public_key = '' AND new.secret_key = '' THEN
         SET new.public_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64)
            ,new.secret_key = SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())),1,64);
