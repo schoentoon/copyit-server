@@ -23,7 +23,9 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.handler.codec.http.multipart.HttpData;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.Page;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
@@ -37,6 +39,7 @@ import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.MOVED_PERMANENTLY;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
+import static java.lang.Integer.parseInt;
 
 public class Authorize extends Page {
     private static final String USER_ID = "user_id";
@@ -60,37 +63,59 @@ public class Authorize extends Page {
     private static final String CALLBACK_URI = "callback_uri";
     private static final String VERIFIER = "verifier";
     private static final String CALLBACK_URI_PARAMETER = "?oauth_verifier=";
+
     private static final String INVALID_TOKEN = "Invalid token..";
+    private static final String USER_ID_NOT_A_NUMBER = "The specified user_id is not a number";
+    private static final String WE_MADE_A_BOO_BOO = "We made a boo boo.";
 
     private static final String SELECT_CALLBACK = "SELECT callback_uri, verifier " +
                                                   "FROM request_tokens " +
                                                   "WHERE public_key = ? " +
                                                   "AND (NOW() - INTERVAL 5 MINUTE) < timestamp";
 
-    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int user_id) throws Exception {
+    private static final String UPDATE_USER_ID = "UPDATE request_tokens " +
+                                                 "SET user_id = ? " +
+                                                 "WHERE public_key = ? ";
+
+    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int ignore) throws Exception {
         final QueryStringDecoder querydecoder = new QueryStringDecoder(new URI(request.getUri()));
         Map<String, List<String>> parameters = querydecoder.parameters();
         if (!parameters.containsKey(OAUTH_TOKEN) || parameters.get(OAUTH_TOKEN).size() != 1)
             throw new ErrorException(MISSING_OAUTH_TOKEN);
         if (postRequestDecoder.getBodyHttpData(USER_ID) == null)
             throw new ErrorException(MISSING_USER_ID);
-        PreparedStatement statement = database.getConnection().prepareStatement(SELECT_CALLBACK);
-        statement.setString(1, parameters.get(OAUTH_TOKEN).get(0));
-        ResultSet result = statement.executeQuery();
-        if (result.first()) {
-            final String callback = result.getString(CALLBACK_URI);
-            final String verifier = result.getString(VERIFIER);
-            result.close();
-            final StringBuilder output = new StringBuilder();
-            output.append(callback);
-            output.append(CALLBACK_URI_PARAMETER);
-            output.append(verifier);
-            DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion(), MOVED_PERMANENTLY);
-            HttpHeaders.addHeader(response, HttpHeaders.Names.LOCATION, output.toString());
-            return response;
-        } else {
-            result.close();
-            throw new ErrorException(INVALID_TOKEN);
+        try {
+            InterfaceHttpData user_id_raw = postRequestDecoder.getBodyHttpData(USER_ID);
+            if (user_id_raw instanceof HttpData) {
+                int user_id = parseInt(((HttpData) user_id_raw).getString());
+                PreparedStatement update = database.getConnection().prepareStatement(UPDATE_USER_ID);
+                update.setInt(1, user_id);
+                update.setString(2, parameters.get(OAUTH_TOKEN).get(0));
+                if (update.executeUpdate() == 1) {
+                    PreparedStatement statement = database.getConnection().prepareStatement(SELECT_CALLBACK);
+                    statement.setString(1, parameters.get(OAUTH_TOKEN).get(0));
+                    ResultSet result = statement.executeQuery();
+                    if (result.first()) {
+                        final String callback = result.getString(CALLBACK_URI);
+                        final String verifier = result.getString(VERIFIER);
+                        result.close();
+                        final StringBuilder output = new StringBuilder();
+                        output.append(callback);
+                        output.append(CALLBACK_URI_PARAMETER);
+                        output.append(verifier);
+                        DefaultFullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion(), MOVED_PERMANENTLY);
+                        HttpHeaders.addHeader(response, HttpHeaders.Names.LOCATION, output.toString());
+                        return response;
+                    } else {
+                        result.close();
+                        throw new ErrorException(INVALID_TOKEN);
+                    }
+                }
+                throw new ErrorException(WE_MADE_A_BOO_BOO);
+            } else
+                throw new ErrorException(USER_ID_NOT_A_NUMBER);
+        } catch (NumberFormatException e) {
+            throw new ErrorException(USER_ID_NOT_A_NUMBER);
         }
     }
 
