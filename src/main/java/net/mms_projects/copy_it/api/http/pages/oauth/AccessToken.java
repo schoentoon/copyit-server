@@ -52,6 +52,9 @@ public class AccessToken extends Page {
     private static final String OUTPUT_TOKEN = "oauth_token=";
     private static final String OUTPUT_TOKEN_SECRET = "&oauth_token_secret=";
 
+    private static final String CLEANUP = "DELETE FROM request_tokens " +
+                                          "WHERE public_key = ?";
+
     public FullHttpResponse onGetRequest(HttpRequest request, Database database, int ignore) throws Exception {
         URI uri = new URI(request.getUri());
         HeaderVerifier headerVerifier = new HeaderVerifier(request, uri, HeaderVerifier.Flags.REQUIRES_VERIFIER);
@@ -82,6 +85,9 @@ public class AccessToken extends Page {
                 output.append(OUTPUT_TOKEN_SECRET);
                 output.append(tokens.getString(SECRET_KEY));
                 tokens.close();
+                PreparedStatement cleanup = database.getConnection().prepareStatement(CLEANUP);
+                cleanup.setString(1, token);
+                cleanup.executeUpdate();
                 return new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,OK, Unpooled.copiedBuffer(output.toString(), CharsetUtil.UTF_8));
             }
