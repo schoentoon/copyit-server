@@ -65,6 +65,7 @@ public class HeaderVerifier {
         private static final String MISSING_VERSION = "Missing oauth_version";
         private static final String MISSING_TOKEN = "Missing oauth_token";
         private static final String MISSING_SIGNATURE = "Missing oauth_signature";
+        private static final String MISSING_VERIFIER = "Missing oauth_verifier";
         private static final String INVALID_CONSUMER_KEY = "Invalid consumer key";
         private static final String INVALID_TIMESTAMP = "Invalid timestamp";
         private static final String TIMESTAMP_OUT_OF_BOUNDS = "Timestamp is out of bounds (is your time correct?)";
@@ -87,11 +88,14 @@ public class HeaderVerifier {
         private static final String OAUTH_TOKEN = "oauth_token";
         private static final String OAUTH_SIGNATURE = "oauth_signature";
         private static final String OAUTH_CALLBACK = "oauth_callback";
+        private static final String OAUTH_VERIFIER = "oauth_verifier";
+        private static final String VERIFIER_KEYS[] = { OAUTH_CONSUMER_KEY, OAUTH_NONCE, OAUTH_SIGNATURE_METHOD, OAUTH_TIMESTAMP, OAUTH_TOKEN, OAUTH_VERIFIER, OAUTH_VERSION };
         private static final String KEYS[] = { OAUTH_CONSUMER_KEY, OAUTH_NONCE, OAUTH_SIGNATURE_METHOD, OAUTH_TIMESTAMP, OAUTH_TOKEN, OAUTH_VERSION };
     }
 
     public static final class Flags {
-        public static final int MAY_MISS_TOKEN = 0x01;
+        public static final int MAY_MISS_TOKEN    = 0x01;
+        public static final int REQUIRES_VERIFIER = 0x02;
     }
 
     private static final String OAUTH_REALM = "OAuth realm=\"\"";
@@ -149,6 +153,8 @@ public class HeaderVerifier {
             error(ErrorMessages.INVALID_VERSION);
         if (((flags & Flags.MAY_MISS_TOKEN) != Flags.MAY_MISS_TOKEN) && !oauth_params.containsKey(OAuthParameters.OAUTH_TOKEN))
             error(ErrorMessages.MISSING_TOKEN);
+        if (((flags & Flags.REQUIRES_VERIFIER) == Flags.REQUIRES_VERIFIER) && !oauth_params.containsKey(OAuthParameters.OAUTH_VERIFIER))
+            error(ErrorMessages.MISSING_VERIFIER);
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_SIGNATURE))
             error(ErrorMessages.MISSING_SIGNATURE);
         final QueryStringDecoder querydecoder = new QueryStringDecoder(request.getUri());
@@ -163,6 +169,7 @@ public class HeaderVerifier {
             throw exception;
         this.request = request;
         this.uri = uri;
+        this.flags = flags;
     }
 
     public void verifyConsumer(Database database) throws SQLException, OAuthException {
@@ -192,7 +199,7 @@ public class HeaderVerifier {
             throw new OAuthException(ErrorMessages.INVALID_OAUTH_TOKEN);
     }
 
-    private final class User {
+    private static class User {
         public static final String SECRET_KEY = "secret_key";
         public static final String USER_ID = "user_id";
         public User(ResultSet result) throws SQLException {
@@ -200,11 +207,21 @@ public class HeaderVerifier {
             user_id = result.getInt(USER_ID);
         }
 
-        public final String getPublicKey() { return oauth_params.get(OAuthParameters.OAUTH_TOKEN); }
         public final String getSecretKey() { return secret; }
         public final int getUserId() { return user_id; }
         private final String secret;
         private final int user_id;
+    }
+
+    public static class FakeUser extends User {
+        public FakeUser(ResultSet resultSet) throws SQLException {
+            super(resultSet);
+        }
+    }
+
+    public void setFakeUser(FakeUser fakeUser) {
+        if (user == null)
+            user = fakeUser;
     }
 
     private static final String NONCE_CHECKING_QUERY = "SELECT 1 " +
@@ -277,15 +294,17 @@ public class HeaderVerifier {
             rawbuilder.append('s');
         rawbuilder.append(COLON_SLASH_SLASH);
         rawbuilder.append(URLEncoder.encode(request.headers().get(HOST), UTF_8));
-        uri = new URI(request.getUri());
         rawbuilder.append(URLEncoder.encode(uri.getPath(), UTF_8));
         rawbuilder.append('&');
         if (uri.getQuery() == null && request.getMethod() == HttpMethod.GET) {
-            for (int i = 0; i < OAuthParameters.KEYS.length; i++) {
-                rawbuilder.append(OAuthParameters.KEYS[i]);
+            String[] loop_through = OAuthParameters.KEYS;
+            if ((flags & Flags.REQUIRES_VERIFIER) == Flags.REQUIRES_VERIFIER)
+                loop_through = OAuthParameters.VERIFIER_KEYS;
+            for (int i = 0; i < loop_through.length; i++) {
+                rawbuilder.append(loop_through[i]);
                 rawbuilder.append(EQUALS);
-                rawbuilder.append(URLEncoder.encode(oauth_params.get(OAuthParameters.KEYS[i]), UTF_8));
-                if (i != (OAuthParameters.KEYS.length - 1))
+                rawbuilder.append(URLEncoder.encode(oauth_params.get(loop_through[i]), UTF_8));
+                if (i != (loop_through.length - 1))
                     rawbuilder.append(AND);
             }
         } else {
@@ -317,6 +336,8 @@ public class HeaderVerifier {
             }
             for (int i = 0; i < OAuthParameters.KEYS.length; i++)
                 keys.add(OAuthParameters.KEYS[i]);
+            if ((flags & Flags.REQUIRES_VERIFIER) == Flags.REQUIRES_VERIFIER)
+                keys.add(OAuthParameters.OAUTH_VERIFIER);
             Collections.sort(keys);
             final int length = keys.size();
             for (int i = 0; i < length; i++) {
@@ -353,6 +374,8 @@ public class HeaderVerifier {
             return null;
         return URLDecoder.decode(callback, UTF_8);
     }
+    public String getVerifier() { return oauth_params.get(OAuthParameters.OAUTH_VERIFIER); }
+    public String getPublicToken() { return oauth_params.get(OAuthParameters.OAUTH_TOKEN); }
 
     private final String auth_header;
     private final HttpRequest request;
@@ -360,5 +383,6 @@ public class HeaderVerifier {
     private OAuthException exception;
     private Consumer consumer;
     private User user;
-    private URI uri;
+    private final URI uri;
+    private final int flags;
 }

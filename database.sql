@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `request_tokens` (
   `aid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Dirty hack because MySQL can''t return last inserted row directly..',
   `callback_uri` varchar(1024) NOT NULL,
   `verifier` varchar(32) NOT NULL DEFAULT '',
+  `user_id` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`aid`),
   UNIQUE KEY `public_key` (`public_key`),
   KEY `applications` (`application_id`)

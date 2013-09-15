@@ -10,6 +10,7 @@ REQUEST_TOKEN_URL = 'http://127.0.0.1:8080/oauth/request_token'
 ACCESS_TOKEN_URL = 'http://127.0.0.1:8080/oauth/access_token'
 AUTHORIZATION_URL = 'http://127.0.0.1:8080/oauth/authorize'
 CALLBACK_URL = 'http://127.0.0.1:1337/request_token_ready'
+RESOURCE_URL = 'http://127.0.0.1:8080/1/clipboard/get'
 
 CONSUMER_KEY = '401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d'
 CONSUMER_SECRET = 'ba3f5945ba6cfb18ca4869cef2c3daf9d4230e37629f3087b281be6ec8fda2bd'
@@ -51,7 +52,8 @@ class SimpleOAuthClient(oauth.OAuthClient):
         # via post body
         # -> some protected resources
         headers = {'Content-Type' :'application/x-www-form-urlencoded'}
-        self.connection.request('POST', RESOURCE_URL, body=oauth_request.to_postdata(), headers=headers)
+        headers.update(oauth_request.to_header())
+        self.connection.request('GET', RESOURCE_URL, headers=headers)
         response = self.connection.getresponse()
         return response.read()
 
@@ -114,10 +116,9 @@ def run_example():
     # access some protected resources
     print '* Access protected resources ...'
     pause()
-    parameters = {'file': 'vacation.jpg', 'size': 'original'} # resource specific params
-    oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, token=token, http_method='POST', http_url=RESOURCE_URL, parameters=parameters)
+    oauth_request = oauth.OAuthRequest.from_consumer_and_token(consumer, token=token, http_method='GET', http_url=RESOURCE_URL)
     oauth_request.sign_request(signature_method_hmac_sha1, consumer, token)
-    print 'REQUEST (via post body)'
+    print 'REQUEST (via headers)'
     print 'parameters: %s' % str(oauth_request.parameters)
     pause()
     params = client.access_resource(oauth_request)
