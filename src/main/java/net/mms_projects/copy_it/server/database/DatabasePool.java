@@ -37,6 +37,7 @@ public final class DatabasePool {
         for (int i = 0; i < maxConnections; i++)
             connections.add((Database) constructor.newInstance(dbconnect));
         singleton = this;
+        System.err.println("[OK] Created a " + driver.getSimpleName() + " database pool with " + maxConnections + " connections");
     }
 
     public static final Database getDBConnection() throws OutOfConnectionsException {

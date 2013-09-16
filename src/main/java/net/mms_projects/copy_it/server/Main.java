@@ -19,6 +19,7 @@ package net.mms_projects.copy_it.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -38,15 +39,20 @@ public class Main {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-              ServerBootstrap b = new ServerBootstrap();
-              b.group(bossGroup, workerGroup)
-                        .channel(NioServerSocketChannel.class)
-                        .childHandler(new Initializer());
-              Channel ch = b.bind(Config.getHTTPAPIPort()).sync().channel();
-              ch.closeFuture().sync();
+            ServerBootstrap b = new ServerBootstrap();
+            b.group(bossGroup, workerGroup)
+                   .channel(NioServerSocketChannel.class)
+                   .childHandler(new Initializer());
+            ChannelFuture channelFuture = b.bind(Config.getHTTPAPIPort());
+            if (channelFuture.await().isSuccess()) {
+                System.err.println("[OK] Bound to port " + Config.getHTTPAPIPort());
+                Channel channel = channelFuture.sync().channel();
+                channel.closeFuture().sync();
+            } else
+                System.err.println("[!!] Failed to listen on " + Config.getHTTPAPIPort());
         } finally {
-              bossGroup.shutdownGracefully();
-              workerGroup.shutdownGracefully();
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
     }
 }
