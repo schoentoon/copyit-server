@@ -24,10 +24,14 @@ import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
 
 public class Initializer extends ChannelInitializer<SocketChannel> {
+    private static final String DECODER = "decoder";
+    private static final String ENCODER = "encoder";
+    private static final String HANDLER = "handler";
+
     public void initChannel(final SocketChannel ch) throws Exception {
         final ChannelPipeline p = ch.pipeline();
-        p.addLast("decoder", new HttpRequestDecoder());
-        p.addLast("encoder", new HttpResponseEncoder());
-        p.addLast("handler", new Handler());
+        p.addLast(DECODER, new HttpRequestDecoder());
+        p.addLast(ENCODER, new HttpResponseEncoder());
+        p.addLast(HANDLER, new Handler());
     }
 }
