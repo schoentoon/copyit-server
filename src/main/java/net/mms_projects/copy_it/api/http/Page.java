@@ -21,6 +21,8 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import net.mms_projects.copy_it.server.database.Database;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class Page {
     public final static class ContentTypes {
@@ -41,4 +43,11 @@ public abstract class Page {
     public String GetContentType() {
         return ContentTypes.JSON_TYPE;
     }
+
+    protected void postProcess(final Runnable runnable) {
+        if (runnable != null)
+            EXECUTOR_SERVICE.submit(runnable);
+    }
+
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 }
