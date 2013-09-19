@@ -366,6 +366,7 @@ public class HeaderVerifier {
     public URI getUri() { return uri; }
     public int getUserId() { return user.getUserId(); }
     public int getConsumerId() { return consumer.getId(); }
+    public int getConsumerFlags() { return consumer.getFlags(); }
     public String getCallbackUri() throws UnsupportedEncodingException {
         String callback = oauth_params.get(OAuthParameters.OAUTH_CALLBACK);
         if (callback == null)

@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.AuthPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.api.oauth.Consumer;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 import org.json.JSONObject;
@@ -42,12 +43,15 @@ public class UnRegisterGCM extends AuthPage {
 
     private static final String MISSING_GCM_TOKEN = "Missing \"gcm_token\"";
     private static final String GCM_TOKEN_TOO_LONG = "Gcm token is too long, are you sure this is a gcm token?";
+    private static final String YOU_SHOULD_NOT_USE_THIS = "You should not be using this API.";
 
     private static final String GCM_TOKEN = "gcm_token";
     private static final String INSERT_STATEMENT = "DELETE FROM gcm_ids WHERE user_id = ? AND gcm_token = ?";
 
     public FullHttpResponse onPostRequest(final HttpRequest request, final HttpPostRequestDecoder postRequestDecoder
                                          ,final Database database, final HeaderVerifier headerVerifier) throws Exception {
+        if ((headerVerifier.getConsumerFlags() & Consumer.Flags.GCM) != Consumer.Flags.GCM)
+            throw new ErrorException(YOU_SHOULD_NOT_USE_THIS);
         InterfaceHttpData gcm_token = postRequestDecoder.getBodyHttpData(GCM_TOKEN);
         if (gcm_token != null && gcm_token instanceof HttpData) {
             final String gcm_id = ((HttpData) gcm_token).getString();

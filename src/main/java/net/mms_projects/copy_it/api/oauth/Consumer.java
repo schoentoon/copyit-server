@@ -21,10 +21,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Consumer {
-    public static final String PUBLIC_KEY = "public_key";
-    public static final String SECRET_KEY = "secret_key";
-    public static final String FLAGS = "flags";
-    public static final String APP_ID = "application_id";
+    public static final class Flags {
+        public static final int GCM = 0x01;
+    }
+
+    private static final String PUBLIC_KEY = "public_key";
+    private static final String SECRET_KEY = "secret_key";
+    private static final String FLAGS = "flags";
+    private static final String APP_ID = "application_id";
 
     public Consumer(ResultSet cursor) throws SQLException {
         public_key = cursor.getString(PUBLIC_KEY);
