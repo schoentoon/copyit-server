@@ -49,6 +49,12 @@ CREATE TABLE IF NOT EXISTS `facebook_user_mapping` (
   PRIMARY KEY (`service_user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+CREATE TABLE IF NOT EXISTS `gcm_ids` (
+  `user_id` int(10) unsigned NOT NULL,
+  `gcm_token` varchar(256) NOT NULL,
+  PRIMARY KEY (`user_id`,`gcm_token`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 CREATE TABLE IF NOT EXISTS `google_user_mapping` (
   `user_id` int(11) NOT NULL,
   `service_user_id` varchar(128) NOT NULL,
@@ -74,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `request_tokens` (
   PRIMARY KEY (`aid`),
   UNIQUE KEY `public_key` (`public_key`),
   KEY `applications` (`application_id`)
-) ENGINE=MEMORY  DEFAULT CHARSET=latin1 AUTO_INCREMENT=3 ;
+) ENGINE=MEMORY  DEFAULT CHARSET=latin1;
 DROP TRIGGER IF EXISTS `generate_random_request_tokens`;
 DELIMITER //
 CREATE TRIGGER `generate_random_request_tokens` BEFORE INSERT ON `request_tokens`
@@ -105,8 +111,8 @@ CREATE TABLE IF NOT EXISTS `users` (
 CREATE TABLE IF NOT EXISTS `user_tokens` (
   `user_id` int(10) unsigned NOT NULL,
   `application_id` int(10) unsigned NOT NULL,
-  `public_key` char(64) NOT NULL,
-  `secret_key` char(64) NOT NULL,
+  `public_key` char(64) NOT NULL DEFAULT '',
+  `secret_key` char(64) NOT NULL DEFAULT '',
   PRIMARY KEY (`user_id`,`application_id`),
   KEY `application_user_tokens` (`application_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -126,6 +132,9 @@ DELIMITER ;
 
 ALTER TABLE `consumers`
   ADD CONSTRAINT `applications` FOREIGN KEY (`application_id`) REFERENCES `applications` (`_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `gcm_ids`
+  ADD CONSTRAINT `gcm_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `user_tokens`
   ADD CONSTRAINT `applications_` FOREIGN KEY (`application_id`) REFERENCES `applications` (`_id`) ON DELETE CASCADE ON UPDATE CASCADE,

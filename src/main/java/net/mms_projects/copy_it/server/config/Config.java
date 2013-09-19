@@ -73,7 +73,13 @@ public final class Config {
         if (properties != null)
             return properties.getProperty(Keys.DBCONNECT);
         throw new NoConfigException();
-    };
+    }
+
+    public static String getString(final String key) throws MissingKey {
+        if (properties.containsKey(key))
+            return properties.getProperty(key);
+        throw new MissingKey(key);
+    }
 
     private static Properties properties;
 }
