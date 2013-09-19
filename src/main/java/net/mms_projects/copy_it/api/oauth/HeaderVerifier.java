@@ -346,10 +346,8 @@ public class HeaderVerifier {
                 rawbuilder.append(EQUALS);
                 if (key.startsWith(OAUTH_))
                     rawbuilder.append(URLEncoder.encode(oauth_params.get(key), UTF_8));
-                else {
-                    System.err.println(parameters.get(key));
+                else
                     rawbuilder.append(URLEncoder.encode(parameters.get(key), UTF_8));
-                }
                 if (i != (length - 1))
                     rawbuilder.append(AND);
             }

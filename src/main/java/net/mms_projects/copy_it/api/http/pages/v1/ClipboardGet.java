@@ -23,8 +23,9 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
-import net.mms_projects.copy_it.api.http.Page;
+import net.mms_projects.copy_it.api.http.AuthPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 import org.json.JSONObject;
 
@@ -33,7 +34,7 @@ import java.sql.ResultSet;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
-public class ClipboardGet extends Page {
+public class ClipboardGet extends AuthPage {
     private static final String NO_CONTENT_POSTED = "No content posted yet.";
     private static final String CONTENT = "content";
     private static final String DATA = "data";
@@ -42,9 +43,9 @@ public class ClipboardGet extends Page {
                                                  "FROM clipboard_data " +
                                                  "WHERE user_id = ?";
 
-    public FullHttpResponse onGetRequest(HttpRequest request, Database database, int user_id) throws Exception {
+    public FullHttpResponse onGetRequest(HttpRequest request, Database database, HeaderVerifier headerVerifier) throws Exception {
         PreparedStatement statement = database.getConnection().prepareStatement(SELECT_CONTENT);
-        statement.setInt(1, user_id);
+        statement.setInt(1, headerVerifier.getUserId());
         ResultSet result = statement.executeQuery();
         if (result.first()) {
             final JSONObject json = new JSONObject();
@@ -58,7 +59,7 @@ public class ClipboardGet extends Page {
         throw new ErrorException(NO_CONTENT_POSTED);
     }
 
-    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int user_id) throws Exception {
+    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, HeaderVerifier headerVerifier) throws Exception {
         throw new UnsupportedOperationException();
     }
 }

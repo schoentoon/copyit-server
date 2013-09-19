@@ -55,7 +55,7 @@ public class AccessToken extends Page {
     private static final String CLEANUP = "DELETE FROM request_tokens " +
                                           "WHERE public_key = ?";
 
-    public FullHttpResponse onGetRequest(HttpRequest request, Database database, int ignore) throws Exception {
+    public FullHttpResponse onGetRequest(HttpRequest request, Database database) throws Exception {
         URI uri = new URI(request.getUri());
         HeaderVerifier headerVerifier = new HeaderVerifier(request, uri, HeaderVerifier.Flags.REQUIRES_VERIFIER);
         headerVerifier.verifyConsumer(database);
@@ -96,7 +96,7 @@ public class AccessToken extends Page {
         return null;
     }
 
-    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int ignore) throws Exception {
+    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database) throws Exception {
         throw new UnsupportedOperationException();
     }
 

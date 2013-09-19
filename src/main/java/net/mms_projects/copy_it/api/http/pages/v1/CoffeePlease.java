@@ -32,13 +32,13 @@ public class CoffeePlease extends Page {
     private static final HttpResponseStatus I_AM_A_TEAPOT = new HttpResponseStatus(418, "I'm a teapot");
     private static final String SORRY_ONLY_HAVE_TEA = "Sorry, I only have tea.";
 
-    public FullHttpResponse onGetRequest(HttpRequest request, Database database, int user_id) throws Exception {
+    public FullHttpResponse onGetRequest(HttpRequest request, Database database) throws Exception {
         ErrorException errorException = new ErrorException(SORRY_ONLY_HAVE_TEA);
         return new DefaultFullHttpResponse(request.getProtocolVersion()
                 ,I_AM_A_TEAPOT, Unpooled.copiedBuffer(errorException.toString(), CharsetUtil.UTF_8));
     }
 
-    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int user_id) throws Exception {
-        return onGetRequest(request, database, user_id);
+    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database) throws Exception {
+        return onGetRequest(request, database);
     }
 }

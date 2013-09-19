@@ -20,24 +20,31 @@ package net.mms_projects.copy_it.api.http;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class Page {
-    public final static class ContentTypes {
-        public static final String JSON_TYPE = "application/json";
-        public static final String PLAIN_TEXT = "plain/text";
-        public static final String PLAIN_HTML = "text/html";
-    }
-
+public abstract class AuthPage extends Page {
     public abstract FullHttpResponse onGetRequest(final HttpRequest request
-                                                 ,final Database database) throws Exception;
+                                                 ,final Database database
+                                                 ,final HeaderVerifier headerVerifier) throws Exception;
 
     public abstract FullHttpResponse onPostRequest(final HttpRequest request
                                                   ,final HttpPostRequestDecoder postRequestDecoder
-                                                  ,final Database database) throws Exception;
+                                                  ,final Database database
+                                                  ,final HeaderVerifier headerVerifier) throws Exception;
+
+    public FullHttpResponse onGetRequest(final HttpRequest request
+                                        ,final Database database) throws Exception {
+        throw new RuntimeException();
+    };
+
+    public FullHttpResponse onPostRequest(final HttpRequest request
+                                         ,final HttpPostRequestDecoder postRequestDecoder
+                                         ,final Database database) throws Exception {
+        throw new RuntimeException();
+    };
 
     public String GetContentType() {
         return ContentTypes.JSON_TYPE;

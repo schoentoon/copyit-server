@@ -31,7 +31,6 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
-import net.mms_projects.copy_it.api.http.pages.TestPage;
 import net.mms_projects.copy_it.api.http.pages.android.RegisterGCM;
 import net.mms_projects.copy_it.api.http.pages.android.UnRegisterGCM;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
@@ -55,10 +54,9 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 public class Handler extends SimpleChannelInboundHandler<HttpObject> {
     private static final class Pages {
-        private static final HashMap<String, Page> oauth_pages = new HashMap<String, Page>();
+        private static final HashMap<String, AuthPage> oauth_pages = new HashMap<String, AuthPage>();
         private static final HashMap<String, Page> noauth_pages = new HashMap<String, Page>();
         static {
-            oauth_pages.put("/test", new TestPage());
             oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
             oauth_pages.put("/1/clipboard/get", new ClipboardGet());
             oauth_pages.put("/1/android/register", new RegisterGCM());
@@ -80,7 +78,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             if (page != null) {
                 database = DatabasePool.getDBConnection();
                 if (request.getMethod() == HttpMethod.GET) {
-                    final FullHttpResponse response = page.onGetRequest(request, database, -1);
+                    final FullHttpResponse response = page.onGetRequest(request, database);
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
                     HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
                     if (isKeepAlive(request)) {
@@ -108,7 +106,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                 headerVerifier.verifyOAuthNonce(database);
                 if (request.getMethod() == HttpMethod.GET) {
                     headerVerifier.checkSignature(null, false);
-                    final FullHttpResponse response = page.onGetRequest(request, database, headerVerifier.getUserId());
+                    final FullHttpResponse response = ((AuthPage) page).onGetRequest(request, database, headerVerifier);
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
                     HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
                     if (isKeepAlive(request)) {
@@ -133,12 +131,12 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
         } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST) {
             final HttpContent httpContent = (HttpContent) o;
             postRequestDecoder.offer(httpContent);
-            if (o instanceof LastHttpContent && page != null) {
+            if (o instanceof LastHttpContent && page != null && page instanceof AuthPage) {
                 try {
                     if (headerVerifier != null)
                         headerVerifier.checkSignature(postRequestDecoder, false);
-                    final FullHttpResponse response = page.onPostRequest(request, postRequestDecoder, database
-                                                                        , (headerVerifier == null) ? 0 : headerVerifier.getUserId());
+                    final FullHttpResponse response = ((AuthPage) page).onPostRequest(request, postRequestDecoder
+                                                                                     ,database, headerVerifier);
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
                     HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
                     if (isKeepAlive(request)) {

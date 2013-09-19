@@ -25,8 +25,9 @@ import io.netty.handler.codec.http.multipart.HttpData;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
-import net.mms_projects.copy_it.api.http.Page;
+import net.mms_projects.copy_it.api.http.AuthPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 import org.json.JSONObject;
 
@@ -34,8 +35,8 @@ import java.sql.PreparedStatement;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
-public class UnRegisterGCM extends Page {
-    public FullHttpResponse onGetRequest(final HttpRequest request, final Database database, int user_id) throws Exception {
+public class UnRegisterGCM extends AuthPage {
+    public FullHttpResponse onGetRequest(final HttpRequest request, final Database database, final HeaderVerifier headerVerifier) throws Exception {
         throw new UnsupportedOperationException();
     };
 
@@ -46,14 +47,14 @@ public class UnRegisterGCM extends Page {
     private static final String INSERT_STATEMENT = "DELETE FROM gcm_ids WHERE user_id = ? AND gcm_token = ?";
 
     public FullHttpResponse onPostRequest(final HttpRequest request, final HttpPostRequestDecoder postRequestDecoder
-                                         ,final Database database, int user_id) throws Exception {
+                                         ,final Database database, final HeaderVerifier headerVerifier) throws Exception {
         InterfaceHttpData gcm_token = postRequestDecoder.getBodyHttpData(GCM_TOKEN);
         if (gcm_token != null && gcm_token instanceof HttpData) {
             final String gcm_id = ((HttpData) gcm_token).getString();
             System.err.println(gcm_id);
             if (gcm_id.length() < 256) {
                 PreparedStatement statement = database.getConnection().prepareStatement(INSERT_STATEMENT);
-                statement.setInt(1, user_id);
+                statement.setInt(1, headerVerifier.getUserId());
                 statement.setString(2, gcm_id);
                 if (statement.executeUpdate() > 0)
                     database.getConnection().commit();
