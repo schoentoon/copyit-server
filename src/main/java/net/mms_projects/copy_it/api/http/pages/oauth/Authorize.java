@@ -48,7 +48,7 @@ public class Authorize extends Page {
     private static final String MISSING_OAUTH_TOKEN = "We're missing an OAuth token here..";
     private static final String MISSING_USER_ID = "We're missing an user id here..";
 
-    public FullHttpResponse onGetRequest(HttpRequest request, Database database, int user_id) throws Exception {
+    public FullHttpResponse onGetRequest(HttpRequest request, Database database) throws Exception {
         final QueryStringDecoder querydecoder = new QueryStringDecoder(new URI(request.getUri()));
         Map<String, List<String>> parameters = querydecoder.parameters();
         if (!parameters.containsKey(OAUTH_TOKEN))
@@ -77,7 +77,7 @@ public class Authorize extends Page {
                                                  "SET user_id = ? " +
                                                  "WHERE public_key = ? ";
 
-    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int ignore) throws Exception {
+    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database) throws Exception {
         final QueryStringDecoder querydecoder = new QueryStringDecoder(new URI(request.getUri()));
         Map<String, List<String>> parameters = querydecoder.parameters();
         if (!parameters.containsKey(OAUTH_TOKEN) || parameters.get(OAUTH_TOKEN).size() != 1)

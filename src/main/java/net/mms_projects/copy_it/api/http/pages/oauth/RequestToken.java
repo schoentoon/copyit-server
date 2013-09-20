@@ -51,7 +51,7 @@ public class RequestToken extends Page {
     private static final String INVALID_CALLBACK_URI = "Invalid callback uri.";
     private static final String URI_TOO_LONG = "Your callback uri is too long (longer than 1024 characters).";
 
-    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, int user_id) throws Exception {
+    public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database) throws Exception {
         URI uri = new URI(request.getUri());
         HeaderVerifier headerVerifier = new HeaderVerifier(request, uri, HeaderVerifier.Flags.MAY_MISS_TOKEN);
         String callback = headerVerifier.getCallbackUri();
@@ -87,7 +87,7 @@ public class RequestToken extends Page {
         return null;
     }
 
-    public FullHttpResponse onGetRequest(HttpRequest request, Database database, int user_id) throws Exception {
+    public FullHttpResponse onGetRequest(HttpRequest request, Database database) throws Exception {
         throw new UnsupportedOperationException();
     }
 
