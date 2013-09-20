@@ -9,7 +9,7 @@ PORT = 8080
 REQUEST_TOKEN_URL = 'http://127.0.0.1:8080/oauth/request_token'
 ACCESS_TOKEN_URL = 'http://127.0.0.1:8080/oauth/access_token'
 AUTHORIZATION_URL = 'http://127.0.0.1:8080/oauth/authorize'
-CALLBACK_URL = 'http://127.0.0.1:1337/request_token_ready'
+CALLBACK_URL = 'http://127.0.0.1/request_token_ready.php'
 RESOURCE_URL = 'http://127.0.0.1:8080/1/clipboard/get'
 
 CONSUMER_KEY = '401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d'

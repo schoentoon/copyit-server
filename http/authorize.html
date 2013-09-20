@@ -1,4 +1,34 @@
-<html><form method="post">
-user_id: <input type="text" name="user_id"><br>
-<input type="submit" value="Submit">
-</form></html>
+<html>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<script src="https://login.persona.org/include.js"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<img src="https://developer.mozilla.org/files/3955/email_sign_in_black.png" id="signin"/>
+<script>
+    function getURLParameter(name) {
+        return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null;
+    }
+    var signinLink = document.getElementById('signin');
+    if (signinLink) {
+        signinLink.onclick = function() { navigator.id.request(); };
+    }
+    navigator.id.watch({
+        onlogin: function(assertion) {
+            $.ajax({
+                type: 'POST',
+                url: '/oauth/authorize',
+                data: {assertion: assertion, oauth_token: getURLParameter('oauth_token')},
+                success: function(res, status, xhr) {
+                    if (status == 302)
+                        location.href = xhr.getResponseHeader("Location");
+                },
+                error: function(xhr, status, err) {
+                    navigator.id.logout();
+                    alert("Login failure: " + err);
+                }
+            });
+        },
+        onlogout: function() {
+        }
+    });
+</script>
+</html>
