@@ -29,6 +29,7 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.Page;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.server.FileCache;
 import net.mms_projects.copy_it.server.database.Database;
 
 import java.net.URI;
@@ -53,11 +54,8 @@ public class Authorize extends Page {
         Map<String, List<String>> parameters = querydecoder.parameters();
         if (!parameters.containsKey(OAUTH_TOKEN))
             throw new ErrorException(MISSING_OAUTH_TOKEN);
-        String output = "<html><form method=\"post\">\n" +
-                "user_id: <input type=\"text\" name=\"user_id\"><br>\n" +
-                "<input type=\"submit\" value=\"Submit\">\n" +
-                "</form></html>"; //TODO Allow this to be an external html file
-        return new DefaultFullHttpResponse(request.getProtocolVersion(), OK, Unpooled.copiedBuffer(output, CharsetUtil.UTF_8));
+        return new DefaultFullHttpResponse(request.getProtocolVersion(), OK
+                                          ,Unpooled.copiedBuffer(FileCache.get("authorize.html"), CharsetUtil.UTF_8));
     }
 
     private static final String CALLBACK_URI = "callback_uri";

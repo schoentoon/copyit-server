@@ -131,12 +131,14 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
         } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST) {
             final HttpContent httpContent = (HttpContent) o;
             postRequestDecoder.offer(httpContent);
-            if (o instanceof LastHttpContent && page != null && page instanceof AuthPage) {
+            if (o instanceof LastHttpContent && page != null) {
                 try {
-                    if (headerVerifier != null)
+                    FullHttpResponse response;
+                    if (headerVerifier != null && page instanceof AuthPage) {
                         headerVerifier.checkSignature(postRequestDecoder, false);
-                    final FullHttpResponse response = ((AuthPage) page).onPostRequest(request, postRequestDecoder
-                                                                                     ,database, headerVerifier);
+                        response = ((AuthPage) page).onPostRequest(request, postRequestDecoder, database, headerVerifier);
+                    } else
+                        response = page.onPostRequest(request, postRequestDecoder, database);
                     HttpHeaders.setContentLength(response, response.content().readableBytes());
                     HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
                     if (isKeepAlive(request)) {
