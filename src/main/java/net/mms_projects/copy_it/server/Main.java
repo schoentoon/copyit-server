@@ -31,9 +31,12 @@ import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        printPid();
         if (args.length > 0)
             new Config(new File(args[0]));
         else
@@ -62,6 +65,25 @@ public class Main {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+        }
+    }
+
+    public static void printPid() {
+        try {
+            byte[] bo = new byte[256];
+            InputStream is = new FileInputStream("/proc/self/stat");
+            is.read(bo);
+            String pid = null;
+            for (int i = 0; i < bo.length; i++) {
+                if ((bo[i] < '0') || (bo[i] > '9')) {
+                    pid = new String(bo, 0, i);
+                    break;
+                }
+            }
+            is.close();
+            System.err.println("[OK] Pid of server is " + pid);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
