@@ -28,6 +28,7 @@ public final class Config {
         public static final String HTTPAPI_PORT = "httpapi_port";
         public static final String MAXCONN_DATABASEPOOL = "maxconnections_databasepool";
         public static final String HTTP_FILES = "http_files";
+        public static final String GCM_TOKEN = "gcm_token";
         private static final String[] required = { DBCONNECT, HTTPAPI_PORT };
         private static final String[] ints = { HTTPAPI_PORT };
         private static final String[] dirs = { HTTP_FILES };
@@ -79,6 +80,10 @@ public final class Config {
         if (properties.containsKey(key))
             return properties.getProperty(key);
         throw new MissingKey(key);
+    }
+
+    public static boolean hasString(final String key) {
+        return properties.containsKey(key);
     }
 
     private static Properties properties;

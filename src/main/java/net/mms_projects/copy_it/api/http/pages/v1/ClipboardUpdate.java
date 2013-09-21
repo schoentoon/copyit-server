@@ -112,7 +112,7 @@ public class ClipboardUpdate extends AuthPage {
                     HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
                     conn.setRequestMethod(POST);
                     conn.setRequestProperty(CONTENT_TYPE, ContentTypes.JSON_TYPE);
-                    conn.setRequestProperty(AUTHORIZATION, KEY_IS + Config.getString(GCM_TOKEN));
+                    conn.setRequestProperty(AUTHORIZATION, KEY_IS + Config.getString(Config.Keys.GCM_TOKEN));
                     final String output = json.toString();
                     conn.setRequestProperty(CONTENT_LENGTH, String.valueOf(output.length()));
                     conn.setDoOutput(true);
