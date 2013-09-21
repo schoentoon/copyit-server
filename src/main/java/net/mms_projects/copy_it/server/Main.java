@@ -27,6 +27,9 @@ import net.mms_projects.copy_it.api.http.Initializer;
 import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.DatabasePool;
 import net.mms_projects.copy_it.server.database.MySQL;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
+
 import java.io.File;
 
 public class Main {
@@ -39,6 +42,12 @@ public class Main {
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
+            Signal.handle(new Signal("USR2"), new SignalHandler() {
+                public void handle(Signal signal) {
+                    FileCache.clear();
+                    System.err.println("[OK] Cleared file cache.");
+                }
+            });
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                    .channel(NioServerSocketChannel.class)

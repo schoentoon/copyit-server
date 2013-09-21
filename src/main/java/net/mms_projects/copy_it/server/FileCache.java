@@ -56,5 +56,9 @@ public final class FileCache {
         return output;
     }
 
+    public static void clear() {
+        FILE_CACHE.cache.clear();
+    }
+
     private final LinkedHashMap<String, String> cache;
 }
