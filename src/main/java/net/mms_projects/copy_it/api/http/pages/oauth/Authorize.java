@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.multipart.HttpData;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
+import jlibs.core.util.regex.TemplateMatcher;
 import net.mms_projects.copy_it.api.http.Page;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.server.FileCache;
@@ -42,6 +43,7 @@ import java.net.URI;
 import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -56,13 +58,34 @@ public class Authorize extends Page {
     private static final String MISSING_OAUTH_TOKEN = "We're missing an OAuth token here..";
     private static final String MISSING_ASSERTION = "We're missing our assertion here..";
 
+    private static final TemplateMatcher TEMPLATE_MATCHER = new TemplateMatcher("${", "}");
+
+    private static final String SELECT_APPLICATION = "SELECT a.name application " +
+                                                     "FROM request_tokens r, applications a " +
+                                                     "WHERE r.public_key = ? " +
+                                                     "AND r.application_id = a._id";
+
+    private static final String APPLICATION = "application";
+    private static final String AUTHORIZE_DOT_HTML = "authorize.html";
+
     public FullHttpResponse onGetRequest(HttpRequest request, Database database) throws Exception {
         final QueryStringDecoder querydecoder = new QueryStringDecoder(new URI(request.getUri()));
         Map<String, List<String>> parameters = querydecoder.parameters();
         if (!parameters.containsKey(OAUTH_TOKEN))
             throw new ErrorException(MISSING_OAUTH_TOKEN);
-        return new DefaultFullHttpResponse(request.getProtocolVersion(), OK
-                                          ,Unpooled.copiedBuffer(FileCache.get("authorize.html"), CharsetUtil.UTF_8));
+        PreparedStatement get_app = database.getConnection().prepareStatement(SELECT_APPLICATION);
+        get_app.setString(1, parameters.get(OAUTH_TOKEN).get(0));
+        ResultSet result = get_app.executeQuery();
+        if (result.first()) {
+            Map<String, String> vars = new HashMap<String, String>();
+            vars.put(APPLICATION, result.getString(APPLICATION));
+            result.close();
+            return new DefaultFullHttpResponse(request.getProtocolVersion(), OK
+                    ,Unpooled.copiedBuffer(TEMPLATE_MATCHER.replace(FileCache.get(AUTHORIZE_DOT_HTML), vars)
+                                          ,CharsetUtil.UTF_8));
+        }
+        result.close();
+        throw new ErrorException(INVALID_TOKEN);
     }
 
     private static final String CALLBACK_URI = "callback_uri";
