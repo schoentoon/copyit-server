@@ -17,6 +17,7 @@
 
 package net.mms_projects.copy_it.server.database;
 
+import net.mms_projects.copy_it.server.Messages;
 import net.mms_projects.copy_it.server.config.Config;
 
 import java.lang.reflect.Constructor;
@@ -37,7 +38,7 @@ public final class DatabasePool {
         for (int i = 0; i < maxConnections; i++)
             connections.add((Database) constructor.newInstance(dbconnect));
         singleton = this;
-        System.err.println("[OK] Created a " + driver.getSimpleName() + " database pool with " + maxConnections + " connections");
+        Messages.printOK("Created a " + driver.getSimpleName() + " database pool with " + maxConnections + " connections");
     }
 
     public static final Database getDBConnection() throws OutOfConnectionsException {

@@ -48,7 +48,7 @@ public class Main {
             Signal.handle(new Signal("USR2"), new SignalHandler() {
                 public void handle(Signal signal) {
                     FileCache.clear();
-                    System.err.println("[OK] Cleared file cache.");
+                    Messages.printOK("Cleared file cache.");
                 }
             });
             ServerBootstrap b = new ServerBootstrap();
@@ -57,11 +57,11 @@ public class Main {
                    .childHandler(new Initializer());
             ChannelFuture channelFuture = b.bind(Config.getHTTPAPIPort());
             if (channelFuture.await().isSuccess()) {
-                System.err.println("[OK] Bound to port " + Config.getHTTPAPIPort());
+                Messages.printOK("Bound to port " + Config.getHTTPAPIPort());
                 Channel channel = channelFuture.sync().channel();
                 channel.closeFuture().sync();
             } else
-                System.err.println("[!!] Failed to listen on " + Config.getHTTPAPIPort());
+                Messages.printError("Failed to listen on " + Config.getHTTPAPIPort());
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
@@ -81,7 +81,7 @@ public class Main {
                 }
             }
             is.close();
-            System.err.println("[OK] Pid of server is " + pid);
+            Messages.printOK("Pid of server is " + pid);
         } catch (Exception e) {
             e.printStackTrace();
         }
