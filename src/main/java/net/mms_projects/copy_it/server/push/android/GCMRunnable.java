@@ -52,6 +52,16 @@ public class GCMRunnable implements Runnable {
         ids.put(id);
     }
 
+    private static final String DRY_RUN = "dry_run";
+
+    public void setDryRun() {
+        try {
+            full.put(DRY_RUN, true);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void setData(final String key, final int integer) {
         try {
             data.put(key, integer);
@@ -123,7 +133,8 @@ public class GCMRunnable implements Runnable {
         }
     }
 
-    public JSONObject getOutput() {
+    public JSONObject send() {
+        run();
         return output;
     }
 
