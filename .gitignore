@@ -18,3 +18,4 @@ target/
 *.config
 !sample.config
 !travis.config
+*.pid

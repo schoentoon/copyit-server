@@ -17,11 +17,15 @@
 
 package net.mms_projects.copy_it.server;
 
+import net.mms_projects.copy_it.server.config.Config;
 import org.junit.Test;
+
+import java.io.File;
 
 public class TestPrintPid {
     @Test
     public void runTest() throws Exception {
+        new Config(new File("sample.config"));
         Main.printPid();
     }
 }

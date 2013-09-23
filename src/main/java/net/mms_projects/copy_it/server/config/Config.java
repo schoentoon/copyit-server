@@ -29,6 +29,7 @@ public final class Config {
         public static final String MAXCONN_DATABASEPOOL = "maxconnections_databasepool";
         public static final String HTTP_FILES = "http_files";
         public static final String GCM_TOKEN = "gcm_token";
+        public static final String PID_FILE = "pid_file";
         private static final String[] required = { DBCONNECT, HTTPAPI_PORT };
         private static final String[] ints = { HTTPAPI_PORT };
         private static final String[] dirs = { HTTP_FILES };

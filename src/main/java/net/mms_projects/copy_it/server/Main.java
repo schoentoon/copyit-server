@@ -32,15 +32,16 @@ import sun.misc.SignalHandler;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        printPid();
         if (args.length > 0)
             new Config(new File(args[0]));
         else
             new Config(new File("copyit.config"));
+        printPid();
         new DatabasePool(MySQL.class, Config.getMaxConnectionsDatabasePool());
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -82,6 +83,13 @@ public class Main {
             }
             is.close();
             Messages.printOK("Pid of server is " + pid);
+            if (Config.hasString(Config.Keys.PID_FILE)) {
+                File pidfile = new File(Config.getString(Config.Keys.PID_FILE));
+                FileOutputStream pidout = new FileOutputStream(pidfile);
+                pidout.write(pid.getBytes());
+                pidout.flush();
+                pidout.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
