@@ -28,22 +28,14 @@ import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.AuthPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
-import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.Database;
-import net.mms_projects.copy_it.server.database.DatabasePool;
-import org.json.JSONArray;
+import net.mms_projects.copy_it.server.push.android.GCMRunnable;
 import org.json.JSONObject;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.net.URL;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.AUTHORIZATION;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class ClipboardUpdate extends AuthPage {
@@ -68,75 +60,29 @@ public class ClipboardUpdate extends AuthPage {
             statement.execute();
         } else
             throw new ErrorException(MISSING_DATA_PARAMETER);
-        postProcess(new PushNotification(headerVerifier.getUserId()));
+        dispatchNotification(database, headerVerifier.getUserId());
         final JSONObject json = new JSONObject();
         return new DefaultFullHttpResponse(request.getProtocolVersion()
                 ,OK, Unpooled.copiedBuffer(json.toString(), CharsetUtil.UTF_8));
     }
 
-    private static final class PushNotification implements Runnable {
-        private PushNotification(int user_id) {
-            this.user_id = user_id;
+    private static final String SELECT_GCM_TOKENS = "SELECT gcm_token " +
+            "FROM gcm_ids " +
+            "WHERE user_id = ?";
+    private static final String GCM_TOKEN = "gcm_token";
+
+    public void dispatchNotification(Database database, int user_id) throws SQLException {
+        PreparedStatement statement = database.getConnection().prepareStatement(SELECT_GCM_TOKENS);
+        statement.setInt(1, user_id);
+        ResultSet resultSet = statement.executeQuery();
+        if (resultSet.first()) {
+            GCMRunnable gcm = new GCMRunnable();
+            do {
+                gcm.addRegistrationId(resultSet.getString(GCM_TOKEN));
+            } while (resultSet.next());
+            gcm.setData("test", 123);
+            postProcess(gcm);
         }
-
-        private static final String SELECT_GCM_TOKENS = "SELECT gcm_token " +
-                                                        "FROM gcm_ids " +
-                                                        "WHERE user_id = ?";
-        private static final String GCM_TOKEN = "gcm_token";
-        private static final String REGISTRATION_IDS = "registration_ids";
-        private static final String DATA = "data";
-        private static final String GCM_URL = "https://android.googleapis.com/gcm/send";
-        private static final String POST = "POST";
-        private static final String KEY_IS = "key=";
-
-        public void run() {
-            Database database = null;
-            try {
-                database = DatabasePool.getDBConnection();
-                PreparedStatement statement = database.getConnection().prepareStatement(SELECT_GCM_TOKENS);
-                statement.setInt(1, user_id);
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.first()) {
-                    JSONObject json = new JSONObject();
-                    JSONArray ids_array = new JSONArray();
-                    json.put(REGISTRATION_IDS, ids_array);
-                    do {
-                        ids_array.put(resultSet.getString(GCM_TOKEN));
-                    } while (resultSet.next());
-                    resultSet.close();
-                    JSONObject data = new JSONObject();
-                    json.put(DATA, data);
-                    data.put("test", 123);
-                    System.err.println("Input json: " + json.toString());
-                    URL url = new URL(GCM_URL);
-                    HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-                    conn.setRequestMethod(POST);
-                    conn.setRequestProperty(CONTENT_TYPE, ContentTypes.JSON_TYPE);
-                    conn.setRequestProperty(AUTHORIZATION, KEY_IS + Config.getString(Config.Keys.GCM_TOKEN));
-                    final String output = json.toString();
-                    conn.setRequestProperty(CONTENT_LENGTH, String.valueOf(output.length()));
-                    conn.setDoOutput(true);
-                    conn.setDoInput(true);
-                    DataOutputStream outputstream = new DataOutputStream(conn.getOutputStream());
-                    outputstream.writeBytes(output);
-                    outputstream.close();
-                    DataInputStream input = new DataInputStream(conn.getInputStream());
-                    StringBuilder builder = new StringBuilder(input.available());
-                    for(int c = input.read(); c != -1; c = input.read())
-                        builder.append((char) c);
-                    input.close();
-                    JSONObject outputjson = new JSONObject(builder.toString());
-                    System.err.println("Output json: " + outputjson.toString());
-                } else
-                    resultSet.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (database != null)
-                    database.free();
-            }
-        }
-
-        private final int user_id;
+        resultSet.close();
     }
 }

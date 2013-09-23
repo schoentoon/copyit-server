@@ -82,6 +82,12 @@ public final class Config {
         throw new MissingKey(key);
     }
 
+    public static String getStringSafe(final String key) {
+        if (properties.containsKey(key))
+            return properties.getProperty(key);
+        return "null";
+    }
+
     public static boolean hasString(final String key) {
         return properties.containsKey(key);
     }
