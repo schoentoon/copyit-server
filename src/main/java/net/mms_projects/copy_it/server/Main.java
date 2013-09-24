@@ -85,6 +85,7 @@ public class Main {
             Messages.printOK("Pid of server is " + pid);
             if (Config.hasString(Config.Keys.PID_FILE)) {
                 File pidfile = new File(Config.getString(Config.Keys.PID_FILE));
+                pidfile.deleteOnExit();
                 FileOutputStream pidout = new FileOutputStream(pidfile);
                 pidout.write(pid.getBytes());
                 pidout.flush();
