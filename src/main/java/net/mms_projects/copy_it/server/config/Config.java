@@ -30,9 +30,6 @@ public final class Config {
         public static final String HTTP_FILES = "http_files";
         public static final String GCM_TOKEN = "gcm_token";
         public static final String PID_FILE = "pid_file";
-        private static final String[] required = { DBCONNECT, HTTPAPI_PORT };
-        private static final String[] ints = { HTTPAPI_PORT };
-        private static final String[] dirs = { HTTP_FILES };
     }
 
     public Config(final File file) throws ConfigAlreadyLoadedException, IOException, MissingRequiredKey, NotADirectoryException {
@@ -40,17 +37,20 @@ public final class Config {
             throw new ConfigAlreadyLoadedException();
         properties = new Properties();
         properties.load(new FileReader(file));
-        for (int i = 0; i < Keys.required.length; i++) {
-            if (!properties.containsKey(Keys.required[i]))
-                throw new MissingRequiredKey(Keys.required[i]);
+        final String[] required = { Keys.DBCONNECT, Keys.HTTPAPI_PORT };
+        for (int i = 0; i < required.length; i++) {
+            if (!properties.containsKey(required[i]))
+                throw new MissingRequiredKey(required[i]);
         }
-        for (int i = 0; i < Keys.ints.length; i++) {
-            if (properties.containsKey(Keys.ints[i]))
-                Integer.valueOf(properties.getProperty(Keys.ints[i]));
+        final String[] ints = { Keys.HTTPAPI_PORT };
+        for (int i = 0; i < ints.length; i++) {
+            if (properties.containsKey(ints[i]))
+                Integer.valueOf(properties.getProperty(ints[i]));
         }
-        for (int i = 0; i < Keys.dirs.length; i++) {
-            if (properties.containsKey(Keys.dirs[i])) {
-                File dir = new File(properties.getProperty(Keys.dirs[i]));
+        final String[] dirs = { Keys.HTTP_FILES };
+        for (int i = 0; i < dirs.length; i++) {
+            if (properties.containsKey(dirs[i])) {
+                File dir = new File(properties.getProperty(dirs[i]));
                 if (!dir.exists() || !dir.isDirectory())
                     throw new NotADirectoryException(dir);
             }
