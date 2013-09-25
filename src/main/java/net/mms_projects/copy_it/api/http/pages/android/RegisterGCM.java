@@ -30,6 +30,7 @@ import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.oauth.Consumer;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
+import net.mms_projects.copy_it.server.push.android.GCMRunnable;
 import org.json.JSONObject;
 
 import java.sql.PreparedStatement;
@@ -46,6 +47,9 @@ public class RegisterGCM extends AuthPage {
     private static final String YOU_SHOULD_NOT_USE_THIS = "You should not be using this API.";
 
     private static final String GCM_TOKEN = "gcm_token";
+    private static final String SUCCESS = "success";
+    private static final String RESULTS = "results";
+    private static final String ERROR = "error";
     private static final String INSERT_STATEMENT = "INSERT IGNORE INTO gcm_ids (user_id, gcm_token) VALUES (?, ?)";
 
     public FullHttpResponse onPostRequest(final HttpRequest request, final HttpPostRequestDecoder postRequestDecoder
@@ -56,14 +60,23 @@ public class RegisterGCM extends AuthPage {
         if (gcm_token != null && gcm_token instanceof HttpData) {
             final String gcm_id = ((HttpData) gcm_token).getString();
             if (gcm_id.length() < 256) {
-                PreparedStatement statement = database.getConnection().prepareStatement(INSERT_STATEMENT);
-                statement.setInt(1, headerVerifier.getUserId());
-                statement.setString(2, gcm_id);
-                if (statement.executeUpdate() > 0)
-                    database.getConnection().commit();
-                JSONObject json = new JSONObject();
-                return new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,OK, Unpooled.copiedBuffer(json.toString(), CharsetUtil.UTF_8));
+                GCMRunnable gcmRunnable = new GCMRunnable();
+                gcmRunnable.addRegistrationId(gcm_id);
+                gcmRunnable.setDryRun();
+                JSONObject output = gcmRunnable.send();
+                if (output.optInt(SUCCESS, 0) == 1) {
+                    PreparedStatement statement = database.getConnection().prepareStatement(INSERT_STATEMENT);
+                    statement.setInt(1, headerVerifier.getUserId());
+                    statement.setString(2, gcm_id);
+                    if (statement.executeUpdate() > 0)
+                        database.getConnection().commit();
+                    JSONObject json = new JSONObject();
+                    return new DefaultFullHttpResponse(request.getProtocolVersion()
+                               ,OK, Unpooled.copiedBuffer(json.toString(), CharsetUtil.UTF_8));
+                } else {
+                    String error = output.getJSONArray(RESULTS).getJSONObject(0).getString(ERROR);
+                    throw new ErrorException(error);
+                }
             } else
                 throw new ErrorException(GCM_TOKEN_TOO_LONG);
         } else
