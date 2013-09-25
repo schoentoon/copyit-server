@@ -30,7 +30,7 @@ import io.netty.util.CharsetUtil;
 import jlibs.core.util.regex.TemplateMatcher;
 import net.mms_projects.copy_it.api.http.Page;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
-import net.mms_projects.copy_it.server.FileCache;
+import net.mms_projects.copy_it.server.LanguageHeader;
 import net.mms_projects.copy_it.server.database.Database;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -81,7 +81,9 @@ public class Authorize extends Page {
             vars.put(APPLICATION, result.getString(APPLICATION));
             result.close();
             return new DefaultFullHttpResponse(request.getProtocolVersion(), OK
-                    ,Unpooled.copiedBuffer(TEMPLATE_MATCHER.replace(FileCache.get(AUTHORIZE_DOT_HTML), vars)
+                    ,Unpooled.copiedBuffer(TEMPLATE_MATCHER.replace(LanguageHeader.fromRequest(request)
+                                                                                  .getPageInLocale(AUTHORIZE_DOT_HTML)
+                                                                   ,vars)
                                           ,CharsetUtil.UTF_8));
         }
         result.close();
