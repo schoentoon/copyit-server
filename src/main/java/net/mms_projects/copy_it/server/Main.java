@@ -39,22 +39,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
         if (args.length > 0) {
             if ("generate-pages".equals(args[0])) {
-                if (args.length > 1) {
-                    new Config(new File(args[1]));
-                } else {
-                    new Config(new File("copyit.config"));
-                }
-
-                PageGenerator.generate();
-
-                return;
-            } else {
+                new Config(new File((args.length > 1 ? args[1] : "copyit.config")));
+                System.exit(PageGenerator.generate() ? 0 : 1);
+            } else
                 new Config(new File(args[0]));
-            }
-        }  else {
+        }  else
             new Config(new File("copyit.config"));
-        }
-
         printPid();
         new DatabasePool(MySQL.class, Config.getMaxConnectionsDatabasePool());
         EventLoopGroup bossGroup = new NioEventLoopGroup();
