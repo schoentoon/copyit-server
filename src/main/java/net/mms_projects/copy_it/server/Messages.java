@@ -19,10 +19,23 @@ package net.mms_projects.copy_it.server;
 
 import jlibs.core.lang.Ansi;
 
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+
 public final class Messages {
+
+    private static final String BUNDLE_NAME = "messages";
+
     private static final Ansi ACCENT = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.BLUE, null);
     private static final Ansi OK = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.GREEN, null);
     private static final Ansi ERROR = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.RED, null);
+
+    private static ResourceBundle RESOURCE_BUNDLE;
+    private static ResourceBundle FALLBACK_RESOURCE_BUNDLE;
+
+    private Messages() {
+    }
 
     public static void printOK(final String msg) {
         ACCENT.print(System.out, "[ ");
@@ -36,5 +49,36 @@ public final class Messages {
         ERROR.print(System.out, "!!");
         ACCENT.print(System.out, " ] ");
         System.out.println(msg);
+    }
+
+    public static String getString(String key, Locale locale) {
+        try {
+            return getBundle(locale).getString(key);
+        } catch (MissingResourceException e1) {
+            try {
+                return getFallbackBundle().getString(key);
+            } catch (MissingResourceException e2) {
+            }
+        }
+        return '!' + key + '!';
+    }
+
+    public static String getString(String key, Locale locale, Object... formatArgs) {
+        String raw = getString(key, locale);
+        return String.format(raw, formatArgs);
+    }
+
+    private static ResourceBundle getBundle(Locale locale) {
+        if (RESOURCE_BUNDLE == null) {
+            RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, locale);
+        }
+        return RESOURCE_BUNDLE;
+    }
+
+    private static ResourceBundle getFallbackBundle() {
+        if (FALLBACK_RESOURCE_BUNDLE == null) {
+            FALLBACK_RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
+        }
+        return FALLBACK_RESOURCE_BUNDLE;
     }
 }

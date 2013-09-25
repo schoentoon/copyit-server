@@ -36,11 +36,25 @@ import java.io.InputStream;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        printPid();
-        if (args.length > 0)
-            new Config(new File(args[0]));
-        else
+        if (args.length > 0) {
+            if ("generate-pages".equals(args[0])) {
+                if (args.length > 1) {
+                    new Config(new File(args[1]));
+                } else {
+                    new Config(new File("copyit.config"));
+                }
+
+                PageGenerator.generate();
+
+                return;
+            } else {
+                new Config(new File(args[0]));
+            }
+        }  else {
             new Config(new File("copyit.config"));
+        }
+
+        printPid();
         new DatabasePool(MySQL.class, Config.getMaxConnectionsDatabasePool());
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
