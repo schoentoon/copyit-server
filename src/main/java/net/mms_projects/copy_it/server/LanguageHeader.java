@@ -63,14 +63,17 @@ public class LanguageHeader implements List<Locale> {
     }
 
     private static final String DOT = ".";
-    private static final String DOT_EN = ".en";
+    private static final String UNDERSCORE = "_";
+    //private static final String DOT_DEFAULT = ".en_US";
 
     public String getPageInLocale(final String page_name) throws IOException, MissingKey {
         Iterator<Locale> iter = locales.iterator();
         while (iter.hasNext()) {
             Locale locale = iter.next();
             try {
-                return FileCache.get(page_name + DOT + locale.getLanguage());
+                if (locale.getCountry().isEmpty())
+                    return FileCache.get(page_name + DOT + locale.getLanguage());
+                return FileCache.get(page_name + DOT + locale.getLanguage() + UNDERSCORE + locale.getCountry());
             } catch (Exception e) {
                 e.printStackTrace();
             }
