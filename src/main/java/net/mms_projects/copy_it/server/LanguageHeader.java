@@ -75,7 +75,6 @@ public class LanguageHeader implements List<Locale> {
                     return FileCache.get(page_name + DOT + locale.getLanguage());
                 return FileCache.get(page_name + DOT + locale.getLanguage() + UNDERSCORE + locale.getCountry());
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
         //return FileCache.get(page_name + DOT_EN); //TODO Where is my english page damn it :U

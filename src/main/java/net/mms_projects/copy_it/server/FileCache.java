@@ -22,9 +22,12 @@ import net.mms_projects.copy_it.server.config.MissingKey;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public final class FileCache {
     private static final FileCache FILE_CACHE = new FileCache();
@@ -36,6 +39,11 @@ public final class FileCache {
                 return size() > MAX_ITEMS;
             }
         };
+        not_files = Collections.newSetFromMap(new LinkedHashMap<String, Boolean>() {
+            protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+                return size() > MAX_ITEMS;
+            }
+        });
     }
 
     public static String get(final String filename) throws IOException, MissingKey {
@@ -46,19 +54,28 @@ public final class FileCache {
         String output = cache.get(filename);
         if (output != null)
             return output;
-        File file = new File(Config.getString(Config.Keys.HTTP_FILES) + File.separator + filename);
-        FileInputStream inputStream = new FileInputStream(file);
-        final StringBuilder builder = new StringBuilder(inputStream.available());
-        for(int c = inputStream.read(); c != -1; c = inputStream.read())
-            builder.append((char) c);
-        output = builder.toString();
-        cache.put(filename, output);
-        return output;
+        if (not_files.contains(filename))
+            throw new FileNotFoundException(filename);
+        try {
+            File file = new File(Config.getString(Config.Keys.HTTP_FILES) + File.separator + filename);
+            FileInputStream inputStream = new FileInputStream(file);
+            final StringBuilder builder = new StringBuilder(inputStream.available());
+            for(int c = inputStream.read(); c != -1; c = inputStream.read())
+                builder.append((char) c);
+            output = builder.toString();
+            cache.put(filename, output);
+            return output;
+        } catch (FileNotFoundException e) {
+            not_files.add(filename);
+            throw e;
+        }
     }
 
     public static void clear() {
         FILE_CACHE.cache.clear();
+        FILE_CACHE.not_files.clear();
     }
 
     private final LinkedHashMap<String, String> cache;
+    private final Set<String> not_files;
 }
