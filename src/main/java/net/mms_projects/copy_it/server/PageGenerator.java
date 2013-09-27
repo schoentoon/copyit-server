@@ -21,16 +21,20 @@ public class PageGenerator {
         new Locale("nl", "nl"), new Locale("de", "de")
     };
 
+    private static final String[] pages = { "authorize" };
+
     public static boolean generate() {
         if (!cleanUp())
             return false;
-        for (Locale locale : locales) {
-            if (!generatePage("authorize", locale))
-                return false;
-        }
-        for (Locale locale : symlinks) {
-            if (!createSymlink("authorize", locale))
-                return false;
+        for (String page : pages) {
+            for (Locale locale : locales) {
+                if (!generatePage(page, locale))
+                    return false;
+            }
+            for (Locale locale : symlinks) {
+                if (!createSymlink(page, locale))
+                    return false;
+            }
         }
         return true;
     }
