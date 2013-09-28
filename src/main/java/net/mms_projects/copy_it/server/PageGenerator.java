@@ -46,7 +46,7 @@ public class PageGenerator {
             for (File file : files) {
                 for (Locale locale : locales) {
                     if (file.getName().endsWith(locale.getLanguage())
-                        || file.getName().endsWith(locale.getLanguage() + "_" + locale.getCountry())) {
+                        || file.getName().endsWith(locale.getLanguage() + UNDERSCORE + locale.getCountry())) {
                         file.delete();
                         break;
                     }
@@ -59,19 +59,23 @@ public class PageGenerator {
         return true;
     }
 
+    private static final String DOT_HTML = ".html";
+    private static final String DOT_HTML_DOT = ".html.";
+    private static final TemplateMatcher TEMPLATE_MATCHER = new TemplateMatcher("${", "}");
+    private static final String UNDERSCORE = "_";
+
     private static boolean generatePage(String page, Locale locale) {
         String html = null;
         try {
-            html = FileCache.get(page + ".html");
+            html = FileCache.get(page + DOT_HTML);
         } catch (Exception e) {
             Messages.printError("Could not read page file: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
-        TemplateMatcher matcher = new TemplateMatcher("${", "}");
-        String result = matcher.replace(html, new TextResolver(locale));
+        String result = TEMPLATE_MATCHER.replace(html, new TextResolver(locale));
         try {
-            PrintWriter writer = new PrintWriter(Config.getString(Config.Keys.HTTP_FILES) + "/" + page + ".html." + locale.getLanguage() + "_" + locale.getCountry(), "UTF-8");
+            PrintWriter writer = new PrintWriter(Config.getString(Config.Keys.HTTP_FILES) + File.separator + page + DOT_HTML_DOT + locale.getLanguage() + UNDERSCORE + locale.getCountry(), "UTF-8");
             writer.print(result);
             writer.close();
         } catch (Exception e) {
@@ -85,15 +89,15 @@ public class PageGenerator {
 
     private static boolean createSymlink(String page, Locale locale) {
         try {
-            Path link = Paths.get(page + ".html." + locale.getLanguage() + "_" + locale.getCountry());
-            Path dst = Paths.get(Config.getString(Config.Keys.HTTP_FILES) + File.separator + page + ".html." + locale.getLanguage());
+            Path link = Paths.get(page + DOT_HTML_DOT + locale.getLanguage() + UNDERSCORE + locale.getCountry());
+            Path dst = Paths.get(Config.getString(Config.Keys.HTTP_FILES) + File.separator + page + DOT_HTML_DOT + locale.getLanguage());
             Files.createSymbolicLink(dst, link);
         } catch (Exception e) {
-            Messages.printError("Could not create symlink for " + page + ".html." + locale.getLanguage() + "_" + locale.getCountry());
+            Messages.printError("Could not create symlink for " + page + DOT_HTML_DOT + locale.getLanguage() + UNDERSCORE + locale.getCountry());
             e.printStackTrace();
             return false;
         }
-        Messages.printOK("Created symlink for " + page + ".html." + locale.getLanguage() + "_" + locale.getCountry());
+        Messages.printOK("Created symlink for " + page + DOT_HTML_DOT + locale.getLanguage() + UNDERSCORE + locale.getCountry());
         return true;
     }
 
