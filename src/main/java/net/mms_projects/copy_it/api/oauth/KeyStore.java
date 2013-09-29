@@ -35,7 +35,7 @@ public class KeyStore {
         return keyStore;
     }
 
-    private static final String SELECT_QUERY = "SELECT public_key, secret_key, flags, application_id " +
+    private static final String SELECT_QUERY = "SELECT public_key, secret_key, flags, application_id, scopes " +
                                                "FROM consumers " +
                                                "WHERE public_key = ? " +
                                                "LIMIT 1";

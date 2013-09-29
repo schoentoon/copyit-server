@@ -43,7 +43,11 @@ public class ClipboardGet extends AuthPage {
                                                  "FROM clipboard_data " +
                                                  "WHERE user_id = ?";
 
+    private static final String NO_READ_PERMISSION = "No read permissions";
+
     public FullHttpResponse onGetRequest(HttpRequest request, Database database, HeaderVerifier headerVerifier) throws Exception {
+        if (!headerVerifier.getConsumerScope().canRead())
+            throw new ErrorException(NO_READ_PERMISSION);
         PreparedStatement statement = database.getConnection().prepareStatement(SELECT_CONTENT);
         statement.setInt(1, headerVerifier.getUserId());
         ResultSet result = statement.executeQuery();

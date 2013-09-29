@@ -19,9 +19,11 @@ CREATE TABLE IF NOT EXISTS `consumers` (
   `secret_key` char(64) NOT NULL,
   `application_id` int(10) unsigned NOT NULL,
   `flags` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `scopes` smallint(1) unsigned NOT NULL DEFAULT '1' COMMENT '1 = read-only, 2 = write/read',
   PRIMARY KEY (`public_key`),
   UNIQUE KEY `application_id` (`application_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 DROP TRIGGER IF EXISTS `generate_random_keys`;
 DELIMITER //
 CREATE TRIGGER `generate_random_keys` BEFORE INSERT ON `consumers`
@@ -80,7 +82,7 @@ CREATE TABLE IF NOT EXISTS `request_tokens` (
   PRIMARY KEY (`aid`),
   UNIQUE KEY `public_key` (`public_key`),
   KEY `applications` (`application_id`)
-) ENGINE=MEMORY  DEFAULT CHARSET=latin1;
+) ENGINE=MEMORY DEFAULT CHARSET=latin1;
 DROP TRIGGER IF EXISTS `generate_random_request_tokens`;
 DELIMITER //
 CREATE TRIGGER `generate_random_request_tokens` BEFORE INSERT ON `request_tokens`
@@ -116,6 +118,7 @@ CREATE TABLE IF NOT EXISTS `user_tokens` (
   PRIMARY KEY (`user_id`,`application_id`),
   KEY `application_user_tokens` (`application_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 DROP TRIGGER IF EXISTS `generate_random_user_tokens`;
 DELIMITER //
 CREATE TRIGGER `generate_random_user_tokens` BEFORE INSERT ON `user_tokens`

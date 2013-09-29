@@ -46,10 +46,14 @@ public class ClipboardUpdate extends AuthPage {
 
     private static final String INSERT_DATA = "REPLACE INTO clipboard_data (user_id, data) VALUES (?, ?)";
 
+    private static final String NO_WRITE_PERMISSION = "No write permissions.";
+
     public FullHttpResponse onPostRequest(final HttpRequest request
                                          ,final HttpPostRequestDecoder postRequestDecoder
                                          ,final Database database
                                          ,final HeaderVerifier headerVerifier) throws Exception {
+        if (!headerVerifier.getConsumerScope().canWrite())
+            throw new ErrorException(NO_WRITE_PERMISSION);
         final InterfaceHttpData data = postRequestDecoder.getBodyHttpData("data");
         if (data == null)
             throw new ErrorException(MISSING_DATA_PARAMETER);
