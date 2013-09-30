@@ -52,7 +52,7 @@ public class ClipboardUpdate extends AuthPage {
                                          ,final HttpPostRequestDecoder postRequestDecoder
                                          ,final Database database
                                          ,final HeaderVerifier headerVerifier) throws Exception {
-        if (!headerVerifier.getConsumerScope().canWrite())
+        if (!headerVerifier.getConsumerScope().canWrite() || !headerVerifier.getUserScope().canWrite())
             throw new ErrorException(NO_WRITE_PERMISSION);
         final InterfaceHttpData data = postRequestDecoder.getBodyHttpData("data");
         if (data == null)

@@ -180,7 +180,7 @@ public class HeaderVerifier {
         }
     }
 
-    private static final String SELECT_QUERY = "SELECT user_id, secret_key " +
+    private static final String SELECT_QUERY = "SELECT user_id, secret_key, scopes " +
                                                "FROM user_tokens " +
                                                "WHERE application_id = ? " +
                                                "AND public_key = ? " +
@@ -202,15 +202,19 @@ public class HeaderVerifier {
     private static class User {
         public static final String SECRET_KEY = "secret_key";
         public static final String USER_ID = "user_id";
+        public static final String SCOPES = "scopes";
         public User(ResultSet result) throws SQLException {
             secret = result.getString(SECRET_KEY);
             user_id = result.getInt(USER_ID);
+            scope = Scope.fromDatabase(result.getInt(SCOPES));
         }
 
         public final String getSecretKey() { return secret; }
         public final int getUserId() { return user_id; }
+        public final Scope getScope() { return scope; }
         private final String secret;
         private final int user_id;
+        private final Scope scope;
     }
 
     public static class FakeUser extends User {
@@ -367,7 +371,8 @@ public class HeaderVerifier {
     public int getUserId() { return user.getUserId(); }
     public int getConsumerId() { return consumer.getId(); }
     public int getConsumerFlags() { return consumer.getFlags(); }
-    public Consumer.Scope getConsumerScope() { return consumer.getScope(); }
+    public Scope getConsumerScope() { return consumer.getScope(); }
+    public Scope getUserScope() { return user.getScope(); }
     public String getCallbackUri() throws UnsupportedEncodingException {
         String callback = oauth_params.get(OAuthParameters.OAUTH_CALLBACK);
         if (callback == null)

@@ -25,26 +25,6 @@ public class Consumer {
         public static final int GCM = 0x01;
     }
 
-    public enum Scope {
-        READ, WRITE_AND_READ;
-        public static Scope fromDatabase(int i) throws SQLException {
-            switch (i) {
-            case 1:
-                return READ;
-            case 2:
-                return WRITE_AND_READ;
-            default:
-                throw new SQLException(i + " is an invalid scope");
-            }
-        }
-        public boolean canRead() {
-            return true;
-        }
-        public boolean canWrite() {
-            return (this == WRITE_AND_READ);
-        }
-    }
-
     private static final String PUBLIC_KEY = "public_key";
     private static final String SECRET_KEY = "secret_key";
     private static final String FLAGS = "flags";

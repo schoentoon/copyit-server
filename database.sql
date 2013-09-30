@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS `user_tokens` (
   `application_id` int(10) unsigned NOT NULL,
   `public_key` char(64) NOT NULL DEFAULT '',
   `secret_key` char(64) NOT NULL DEFAULT '',
+  `scopes` smallint(1) unsigned NOT NULL DEFAULT '1' COMMENT '1 = read-only, 2 = write/read',
   PRIMARY KEY (`user_id`,`application_id`),
   KEY `application_user_tokens` (`application_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
