@@ -25,6 +25,7 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.AuthPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.api.http.pages.exceptions.UnsupportedMethodException;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 import org.json.JSONObject;
@@ -64,6 +65,6 @@ public class ClipboardGet extends AuthPage {
     }
 
     public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, HeaderVerifier headerVerifier) throws Exception {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedMethodException(request.getMethod());
     }
 }

@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.AuthPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.api.http.pages.exceptions.UnsupportedMethodException;
 import net.mms_projects.copy_it.api.oauth.Consumer;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
@@ -39,7 +40,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class RegisterGCM extends AuthPage {
     public FullHttpResponse onGetRequest(final HttpRequest request, final Database database, final HeaderVerifier headerVerifier) throws Exception {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedMethodException(request.getMethod());
     };
 
     private static final String MISSING_GCM_TOKEN = "Missing \"gcm_token\"";

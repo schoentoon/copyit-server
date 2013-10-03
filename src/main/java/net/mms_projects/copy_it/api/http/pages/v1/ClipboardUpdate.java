@@ -27,6 +27,7 @@ import io.netty.handler.codec.http.multipart.InterfaceHttpData;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.AuthPage;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
+import net.mms_projects.copy_it.api.http.pages.exceptions.UnsupportedMethodException;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 import net.mms_projects.copy_it.server.push.android.GCMRunnable;
@@ -41,7 +42,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 public class ClipboardUpdate extends AuthPage {
     private static final String MISSING_DATA_PARAMETER = "Missing the data parameter.";
     public FullHttpResponse onGetRequest(HttpRequest request, Database database, final HeaderVerifier headerVerifier) throws Exception {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedMethodException(request.getMethod());
     }
 
     private static final String INSERT_DATA = "REPLACE INTO clipboard_data (user_id, data) VALUES (?, ?)";

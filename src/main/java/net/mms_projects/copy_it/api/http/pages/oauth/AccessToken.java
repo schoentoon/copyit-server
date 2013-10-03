@@ -24,6 +24,7 @@ import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.Page;
+import net.mms_projects.copy_it.api.http.pages.exceptions.UnsupportedMethodException;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
 import net.mms_projects.copy_it.server.database.Database;
 
@@ -97,7 +98,7 @@ public class AccessToken extends Page {
     }
 
     public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database) throws Exception {
-        throw new UnsupportedOperationException();
+        throw new UnsupportedMethodException(request.getMethod());
     }
 
     public String GetContentType() {
