@@ -37,4 +37,14 @@ public enum Scope {
     public boolean canWrite() {
         return (this == WRITE_AND_READ);
     }
+    public int toInt() {
+        switch (this) {
+        case READ:
+            return 1;
+        case WRITE_AND_READ:
+            return 2;
+        default:
+            return -1;
+        }
+    }
 }

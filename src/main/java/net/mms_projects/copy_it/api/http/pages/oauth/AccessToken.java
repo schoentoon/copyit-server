@@ -36,13 +36,14 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class AccessToken extends Page {
     private static final String USER_ID = "user_id";
-    private static final String SELECT_USER_ID = "SELECT user_id, secret_key " +
-                                                 "FROM request_tokens " +
-                                                 "WHERE public_key = ? " +
-                                                 "AND verifier = ? " +
-                                                 "AND user_id IS NOT NULL " +
-                                                 "AND (NOW() - INTERVAL 5 MINUTE) < timestamp";
-    private static final String CREATE_TOKEN = "INSERT IGNORE INTO user_tokens (user_id, application_id) VALUES (?, ?)";
+    private static final String SELECT_USER_ID = "SELECT r.user_id user_id, r.secret_key secret_key, c.scopes scopes " +
+                                                 "FROM request_tokens r, consumers c " +
+                                                 "WHERE r.public_key = ? " +
+                                                 "AND r.verifier = ? " +
+                                                 "AND r.user_id IS NOT NULL " +
+                                                 "AND c.application_id = ? " +
+                                                 "AND (NOW() - INTERVAL 5 MINUTE) < r.timestamp";
+    private static final String CREATE_TOKEN = "INSERT IGNORE INTO user_tokens (user_id, application_id, scopes) VALUES (?, ?, ?)";
     private static final String PUBLIC_KEY = "public_key";
     private static final String SECRET_KEY = "secret_key";
     private static final String SELECT_ACCESS_TOKEN = "SELECT public_key, secret_key " +
@@ -65,6 +66,7 @@ public class AccessToken extends Page {
         PreparedStatement statement = database.getConnection().prepareStatement(SELECT_USER_ID);
         statement.setString(1, token);
         statement.setString(2, verifier);
+        statement.setInt(3, headerVerifier.getConsumerId());
         ResultSet result = statement.executeQuery();
         if (result.first()) {
             int user_id = result.getInt(USER_ID);
@@ -74,6 +76,7 @@ public class AccessToken extends Page {
             PreparedStatement create_token = database.getConnection().prepareStatement(CREATE_TOKEN);
             create_token.setInt(1, user_id);
             create_token.setInt(2, headerVerifier.getConsumerId());
+            create_token.setInt(3, headerVerifier.getConsumerScope().toInt());
             create_token.executeUpdate();
             PreparedStatement select_token = database.getConnection().prepareStatement(SELECT_ACCESS_TOKEN);
             select_token.setInt(1, user_id);
