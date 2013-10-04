@@ -40,7 +40,7 @@ public class HeaderVerifierTest {
     }
 
     @Test(expected=OAuthException.class,timeout=750)
-    public void noRealmPresent() throws OAuthException, URISyntaxException {
+    public void faultyAuthHeader() throws OAuthException, URISyntaxException {
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, "A totally invalid authorization header.");
         new HeaderVerifier(request, new URI(request.getUri()));
@@ -231,6 +231,20 @@ public class HeaderVerifierTest {
                 "oauth_token=\"oauth_token\"" +
                 "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"" +
                 "i_am_invalid=\"I'm totally fake\"";
+        HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
+        request.headers().add(AUTHORIZATION, header);
+        new HeaderVerifier(request, new URI(request.getUri()));
+    }
+
+    @Test(timeout=750)
+    public void noRealm() throws OAuthException, URISyntaxException {
+        String header = "OAuth oauth_consumer_key=\"401a131e03357df2a563fba48f98749448ed63d37e007f7353608cf81fa70a2d\", " +
+                "oauth_nonce=\"" + Utils.generateNonce() + "\", " +
+                "oauth_timestamp=\"" + Long.toString(System.currentTimeMillis()/1000) + "\", " +
+                "oauth_signature_method=\"HMAC-SHA1\", " +
+                "oauth_version=\"1.0\", " +
+                "oauth_token=\"oauth_token\", " +
+                "oauth_signature=\"CBTk%2FvzxEqqr0AvhnVgdWNHuKfw%3D\"";
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, "http://127.0.0.1:8080/");
         request.headers().add(AUTHORIZATION, header);
         new HeaderVerifier(request, new URI(request.getUri()));

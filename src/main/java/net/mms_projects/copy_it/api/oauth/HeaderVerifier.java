@@ -106,6 +106,7 @@ public class HeaderVerifier {
     private static final String VALID_OAUTH_VERSION = "1.0";
     private static final String VALID_SIGNATURE_METHOD = "HMAC-SHA1";
     private static final String OAUTH_ = "oauth_";
+    private static final String REALM = "realm";
 
     public HeaderVerifier(final HttpRequest request, final URI uri) throws OAuthException {
         this(request, uri, 0);
@@ -117,13 +118,17 @@ public class HeaderVerifier {
         auth_header = request.headers().get(AUTHORIZATION);
         if (!auth_header.startsWith(OAUTH))
             throw new OAuthException(ErrorMessages.NO_REALM_PRESENT);
-        String[] split = auth_header.split(COMMA_REGEX);
+        String[] split = auth_header.substring(6).split(COMMA_REGEX);
         oauth_params = new LinkedHashMap<String, String>();
-        for (int i = 1; i < split.length; i++) {
-            if (!split[i].startsWith(OAUTH_))
-                throw new OAuthException(ErrorMessages.INVALID_FIELD_IN_AUTHHEADER);
+        for (int i = 0; i < split.length; i++) {
             String[] split_header = split[i].split(EQUALS_REGEX, 2);
-            oauth_params.put(split_header[0], split_header[1].replaceAll(STRIP_QUOTES_REGEX, EMPTY));
+            if (split_header.length == 2) {
+                if (split_header[0].equals(REALM))
+                    continue;
+                else if (!split[i].startsWith(OAUTH_))
+                    throw new OAuthException(ErrorMessages.INVALID_FIELD_IN_AUTHHEADER);
+                oauth_params.put(split_header[0], split_header[1].replaceAll(STRIP_QUOTES_REGEX, EMPTY));
+            }
         }
         if (!oauth_params.containsKey(OAuthParameters.OAUTH_CONSUMER_KEY))
             error(ErrorMessages.MISSING_CONSUMER_KEY);
