@@ -98,7 +98,7 @@ public class HeaderVerifier {
         public static final int REQUIRES_VERIFIER = 0x02;
     }
 
-    private static final String OAUTH_REALM = "OAuth realm=\"\"";
+    private static final String OAUTH = "OAuth ";
     private static final String COMMA_REGEX = ", ";
     private static final String EQUALS_REGEX = "=";
     private static final String STRIP_QUOTES_REGEX = "^\"|\"$";
@@ -115,7 +115,7 @@ public class HeaderVerifier {
         if (!request.headers().contains(AUTHORIZATION))
             throw new OAuthException(ErrorMessages.NO_AUTH_HEADER);
         auth_header = request.headers().get(AUTHORIZATION);
-        if (!auth_header.startsWith(OAUTH_REALM))
+        if (!auth_header.startsWith(OAUTH))
             throw new OAuthException(ErrorMessages.NO_REALM_PRESENT);
         String[] split = auth_header.split(COMMA_REGEX);
         oauth_params = new LinkedHashMap<String, String>();
