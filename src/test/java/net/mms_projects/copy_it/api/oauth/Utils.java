@@ -20,12 +20,12 @@ package net.mms_projects.copy_it.api.oauth;
 import java.security.SecureRandom;
 
 public class Utils {
-  private static final SecureRandom random = new SecureRandom();
-  private static final String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  public static String generateNonce() {
-    char[] text = new char[8];
-    for (int i = 0; i < 8; i++)
-        text[i] = characters.charAt(random.nextInt(characters.length()));
-    return new String(text);
-  }
+    private static final SecureRandom random = new SecureRandom();
+    private static final String characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    public static String generateNonce() {
+        char[] text = new char[8];
+        for (int i = 0; i < 8; i++)
+            text[i] = characters.charAt(random.nextInt(characters.length()));
+        return new String(text);
+    }
 }
