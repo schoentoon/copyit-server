@@ -31,6 +31,7 @@ import jlibs.core.util.regex.TemplateMatcher;
 import net.mms_projects.copy_it.api.http.Page;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.server.LanguageHeader;
+import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.Database;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -166,7 +167,7 @@ public class Authorize extends Page {
     private static final String VERIFY_ASSERTION = "https://verifier.login.persona.org/verify";
     private static final String POST = "POST";
     private static final String ASSERTION_IS = "assertion=";
-    private static final String AUDIENCE = "&audience=http://127.0.0.1:8080";
+    private static final String AUDIENCE = "&audience=" + Config.getStringSafe(Config.Keys.AUDIENCE, "http://127.0.0.1:8080");
 
     private JSONObject verifyAssertion(final String assertion) throws IOException, JSONException {
         URL url = new URL(VERIFY_ASSERTION);

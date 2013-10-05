@@ -20,6 +20,8 @@ package net.mms_projects.copy_it.server.config;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
 
 public final class Config {
@@ -30,9 +32,10 @@ public final class Config {
         public static final String HTTP_FILES = "http_files";
         public static final String GCM_TOKEN = "gcm_token";
         public static final String PID_FILE = "pid_file";
+        public static final String AUDIENCE = "audience";
     }
 
-    public Config(final File file) throws ConfigAlreadyLoadedException, IOException, MissingRequiredKey, NotADirectoryException {
+    public Config(final File file) throws ConfigAlreadyLoadedException, IOException, MissingRequiredKey, NotADirectoryException, URISyntaxException {
         if (properties != null)
             throw new ConfigAlreadyLoadedException();
         properties = new Properties();
@@ -53,6 +56,16 @@ public final class Config {
                 File dir = new File(properties.getProperty(dirs[i]));
                 if (!dir.exists() || !dir.isDirectory())
                     throw new NotADirectoryException(dir);
+            }
+        }
+        final String[] uris = { Keys.AUDIENCE };
+        for (int i = 0; i < uris.length; i++) {
+            if (properties.containsKey(uris[i])) {
+                try {
+                    new URI(properties.getProperty(uris[i]));
+                } catch (URISyntaxException e) {
+                    throw e;
+                }
             }
         }
     }
@@ -83,10 +96,10 @@ public final class Config {
         throw new MissingKey(key);
     }
 
-    public static String getStringSafe(final String key) {
+    public static String getStringSafe(final String key, final String def) {
         if (properties.containsKey(key))
             return properties.getProperty(key);
-        return "null";
+        return def;
     }
 
     public static boolean hasString(final String key) {

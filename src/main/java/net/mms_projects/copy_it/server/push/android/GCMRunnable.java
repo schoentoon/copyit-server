@@ -104,7 +104,7 @@ public class GCMRunnable implements Runnable {
 
     private static final String GCM_URL = "https://android.googleapis.com/gcm/send";
     private static final String POST = "POST";
-    private static final String KEY = "key=" + Config.getStringSafe(Config.Keys.GCM_TOKEN);
+    private static final String KEY = "key=" + Config.getStringSafe(Config.Keys.GCM_TOKEN, null);
 
     public void run() {
         try {
