@@ -37,6 +37,7 @@ import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.http.pages.oauth.AccessToken;
 import net.mms_projects.copy_it.api.http.pages.oauth.Authorize;
 import net.mms_projects.copy_it.api.http.pages.oauth.RequestToken;
+import net.mms_projects.copy_it.api.http.pages.thirdpartyauth.PersonaAuth;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardGet;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
 import net.mms_projects.copy_it.api.http.pages.v1.CoffeePlease;
@@ -68,6 +69,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             noauth_pages.put("/oauth/authorize", new Authorize());
             noauth_pages.put("/oauth/access_token", new AccessToken());
             noauth_pages.put("/1/coffee/please", new CoffeePlease());
+            noauth_pages.put("/auth/persona", new PersonaAuth());
         }
     }
 
