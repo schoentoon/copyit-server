@@ -133,6 +133,12 @@ END
 //
 DELIMITER ;
 
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `email` varchar(128) NOT NULL,
+  `session_id` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`session_id`(256))
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 ALTER TABLE `consumers`
   ADD CONSTRAINT `applications` FOREIGN KEY (`application_id`) REFERENCES `applications` (`_id`) ON DELETE CASCADE ON UPDATE CASCADE;
