@@ -43,6 +43,8 @@ public abstract class Page {
         return ContentTypes.JSON_TYPE;
     }
 
+    public boolean checkConfig() { return true; }
+
     protected void postProcess(final Runnable runnable) {
         if (runnable != null)
             EXECUTOR_SERVICE.submit(runnable);

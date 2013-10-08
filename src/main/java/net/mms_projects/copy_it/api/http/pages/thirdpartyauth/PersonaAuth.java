@@ -66,7 +66,7 @@ public class PersonaAuth extends AbstractAuthorize {
     private static final String VERIFY_ASSERTION = "https://verifier.login.persona.org/verify";
     private static final String POST = "POST";
     private static final String ASSERTION_IS = "assertion=";
-    private static final String AUDIENCE = "&audience=" + Config.getStringSafe(Config.Keys.AUDIENCE, "http://127.0.0.1:8080");
+    private static final String AUDIENCE = "&audience=" + Config.getStringSafe(Config.Keys.AUDIENCE, null);
 
     private JSONObject verifyAssertion(final String assertion) throws IOException, JSONException {
         URL url = new URL(VERIFY_ASSERTION);
@@ -89,5 +89,9 @@ public class PersonaAuth extends AbstractAuthorize {
             builder.append((char) c);
         input.close();
         return new JSONObject(builder.toString());
+    }
+
+    public boolean checkConfig() {
+        return Config.hasString(Config.Keys.AUDIENCE);
     }
 }

@@ -30,6 +30,7 @@ import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.api.http.pages.exceptions.UnsupportedMethodException;
 import net.mms_projects.copy_it.api.oauth.Consumer;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
+import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.Database;
 import org.json.JSONObject;
 
@@ -70,5 +71,9 @@ public class UnRegisterGCM extends AuthPage {
                 throw new ErrorException(GCM_TOKEN_TOO_LONG);
         } else
             throw new ErrorException(MISSING_GCM_TOKEN);
+    };
+
+    public boolean checkConfig() {
+        return Config.hasString(Config.Keys.GCM_TOKEN);
     };
 }

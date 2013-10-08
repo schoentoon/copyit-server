@@ -42,12 +42,13 @@ import net.mms_projects.copy_it.api.http.pages.v1.ClipboardGet;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
 import net.mms_projects.copy_it.api.http.pages.v1.CoffeePlease;
 import net.mms_projects.copy_it.api.oauth.HeaderVerifier;
-import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.Database;
 import net.mms_projects.copy_it.server.database.DatabasePool;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaders.isKeepAlive;
@@ -61,15 +62,23 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
         static {
             oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
             oauth_pages.put("/1/clipboard/get", new ClipboardGet());
-            if (Config.hasString(Config.Keys.GCM_TOKEN)) {
-                oauth_pages.put("/1/android/register", new RegisterGCM());
-                oauth_pages.put("/1/android/unregister", new UnRegisterGCM());
-            }
+            oauth_pages.put("/1/android/register", new RegisterGCM());
+            oauth_pages.put("/1/android/unregister", new UnRegisterGCM());
             noauth_pages.put("/oauth/request_token", new RequestToken());
             noauth_pages.put("/oauth/authorize", new Authorize());
             noauth_pages.put("/oauth/access_token", new AccessToken());
             noauth_pages.put("/1/coffee/please", new CoffeePlease());
             noauth_pages.put("/auth/persona", new PersonaAuth());
+            Iterator<Map.Entry<String, AuthPage>> iter = oauth_pages.entrySet().iterator();
+            while (iter.hasNext()) {
+                if (!iter.next().getValue().checkConfig())
+                    iter.remove();
+            }
+            Iterator<Map.Entry<String, Page>> iterno = noauth_pages.entrySet().iterator();
+            while (iterno.hasNext()) {
+                if (!iterno.next().getValue().checkConfig())
+                    iterno.remove();
+            }
         }
     }
 
