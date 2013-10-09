@@ -28,16 +28,22 @@ import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.pages.exceptions.ErrorException;
 import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.Database;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class PersonaAuth extends AbstractAuthorize {
@@ -64,31 +70,18 @@ public class PersonaAuth extends AbstractAuthorize {
 
 
     private static final String VERIFY_ASSERTION = "https://verifier.login.persona.org/verify";
-    private static final String POST = "POST";
-    private static final String ASSERTION_IS = "assertion=";
-    private static final String AUDIENCE = "&audience=" + Config.getStringSafe(Config.Keys.AUDIENCE, null);
+    private static final String AUDIENCE = "audience";
+    private static final HttpClient CLIENT = HttpClients.createMinimal();
 
     private JSONObject verifyAssertion(final String assertion) throws IOException, JSONException {
-        URL url = new URL(VERIFY_ASSERTION);
-        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-        conn.setRequestMethod(POST);
-        final StringBuilder builder = new StringBuilder(assertion.length());
-        builder.append(ASSERTION_IS);
-        builder.append(assertion);
-        builder.append(AUDIENCE);
-        final String output = builder.toString();
-        conn.setRequestProperty(CONTENT_LENGTH, String.valueOf(output.length()));
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        DataOutputStream outputstream = new DataOutputStream(conn.getOutputStream());
-        outputstream.writeBytes(output);
-        outputstream.close();
-        DataInputStream input = new DataInputStream(conn.getInputStream());
-        builder.setLength(0);
-        for(int c = input.read(); c != -1; c = input.read())
-            builder.append((char) c);
-        input.close();
-        return new JSONObject(builder.toString());
+        HttpPost post = new HttpPost(VERIFY_ASSERTION);
+        List<NameValuePair> parameters = new ArrayList<NameValuePair>(2);
+        parameters.add(new BasicNameValuePair(ASSERTION, assertion));
+        parameters.add(new BasicNameValuePair(AUDIENCE, Config.getStringSafe(Config.Keys.AUDIENCE, null)));
+        post.setEntity(new UrlEncodedFormEntity(parameters));
+        HttpResponse response = CLIENT.execute(post);
+        HttpEntity entity = response.getEntity();
+        return new JSONObject(EntityUtils.toString(entity));
     }
 
     public boolean checkConfig() {

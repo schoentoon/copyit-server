@@ -33,7 +33,7 @@ public abstract class AbstractAuthorize extends Page {
         throw new UnsupportedMethodException(request.getMethod());
     }
 
-    protected static final String SESSION = "session";
+    public static final String SESSION = "session";
     public abstract FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database) throws Exception;
 
     private static final String INSERT_SESSION = "INSERT INTO sessions (email, session_id) VALUES (?, ?)";
