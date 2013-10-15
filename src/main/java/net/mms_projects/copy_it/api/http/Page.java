@@ -20,12 +20,55 @@ package net.mms_projects.copy_it.api.http;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
+import net.mms_projects.copy_it.api.http.pages.android.RegisterGCM;
+import net.mms_projects.copy_it.api.http.pages.android.UnRegisterGCM;
+import net.mms_projects.copy_it.api.http.pages.oauth.AccessToken;
+import net.mms_projects.copy_it.api.http.pages.oauth.Authorize;
+import net.mms_projects.copy_it.api.http.pages.oauth.RequestToken;
+import net.mms_projects.copy_it.api.http.pages.thirdpartyauth.PersonaAuth;
+import net.mms_projects.copy_it.api.http.pages.v1.ClipboardGet;
+import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
+import net.mms_projects.copy_it.api.http.pages.v1.CoffeePlease;
 import net.mms_projects.copy_it.server.database.Database;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public abstract class Page {
+    private final static class Pages {
+        private static final HashMap<String, AuthPage> oauth_pages = new HashMap<String, AuthPage>();
+        private static final HashMap<String, Page> noauth_pages = new HashMap<String, Page>();
+        static {
+            oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
+            oauth_pages.put("/1/clipboard/get", new ClipboardGet());
+            oauth_pages.put("/1/android/register", new RegisterGCM());
+            oauth_pages.put("/1/android/unregister", new UnRegisterGCM());
+            noauth_pages.put("/oauth/request_token", new RequestToken());
+            noauth_pages.put("/oauth/authorize", new Authorize());
+            noauth_pages.put("/oauth/access_token", new AccessToken());
+            noauth_pages.put("/1/coffee/please", new CoffeePlease());
+            noauth_pages.put("/auth/persona", new PersonaAuth());
+            Iterator<Map.Entry<String, AuthPage>> iter = oauth_pages.entrySet().iterator();
+            while (iter.hasNext()) {
+                if (!iter.next().getValue().checkConfig())
+                    iter.remove();
+            }
+            Iterator<Map.Entry<String, Page>> iterno = noauth_pages.entrySet().iterator();
+            while (iterno.hasNext()) {
+                if (!iterno.next().getValue().checkConfig())
+                    iterno.remove();
+            }
+        }
+        private Pages() {
+        }
+    }
+
+    public static Page getNoAuthPage(final String uri) { return Pages.noauth_pages.get(uri); }
+    public static AuthPage getAuthPage(final String uri) { return Pages.oauth_pages.get(uri); }
+
     public final static class ContentTypes {
         public static final String JSON_TYPE = "application/json";
         public static final String PLAIN_TEXT = "plain/text";
