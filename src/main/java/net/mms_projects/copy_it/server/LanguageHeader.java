@@ -43,12 +43,16 @@ public class LanguageHeader implements List<Locale> {
         locales = new ArrayList<Locale>(0);
     }
 
+    private static final String COMMA = ",";
+    private static final String SEMICOLON = ";";
+    private static final String DASH = "-";
+
     public LanguageHeader(final String header) {
         locales = new ArrayList<Locale>();
-        for (String l : header.split(",")) {
+        for (String l : header.split(COMMA)) {
             try {
-                String[] arr = l.trim().split(";");
-                String[] lo = arr[0].split("-");
+                String[] arr = l.trim().split(SEMICOLON);
+                String[] lo = arr[0].split(DASH);
                 Locale locale = null;
                 switch (lo.length) {
                     case 2: locale = new Locale(lo[0], lo[1]); break;
