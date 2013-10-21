@@ -4,10 +4,31 @@
 <meta http-equiv="X-UA-Compatible" content="IE=Edge">
 <script src="https://login.persona.org/include.js"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script type="text/javascript">
+    (function () {
+    var po = document.createElement('script');
+    po.type = 'text/javascript';
+    po.async = true;
+    po.src = 'https://plus.google.com/js/client:plusone.js?onload=start';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(po, s);
+    })();
+</script>
 </head>
 <body>
 ${messages.login.to}
 <img src="https://developer.mozilla.org/files/3955/email_sign_in_black.png" id="signin"/>
+<div id="signinButton">
+  <span class="g-signin"
+        data-scope="https://www.googleapis.com/auth/userinfo.email"
+        data-clientid="$CLIENT_ID$"
+        data-redirecturi="postmessage"
+        data-accesstype="offline"
+        data-cookiepolicy="single_host_origin"
+        data-callback="signInCallback">
+  </span>
+</div>
+<div id="result"></div>
 <form method="post">
     <input type="hidden" id="session" name="session"/>
     <input type="submit" value="Post"/>
@@ -36,6 +57,30 @@ ${messages.login.to}
         onlogout: function() {
         }
     });
+    function signInCallback(authResult) {
+        if (authResult['code']) {
+
+            // Hide the sign-in button now that the user is authorized, for example:
+            $('#signinButton').attr('style', 'display: none');
+
+            // Send the code to the server
+            $.ajax({
+                type: 'POST',
+                url: '/auth/googleplus',
+                contentType: 'application/octet-stream; charset=utf-8',
+                success: function(res) {
+                    document.getElementById('session').value = res["session"];
+                },
+                data: {code:authResult['code']}
+            });
+        } else if (authResult['error']) {
+            // There was an error.
+            // Possible error codes:
+            //   "access_denied" - User denied access to your app
+            //   "immediate_failed" - Could not automatially log in the user
+            // console.log('There was an error: ' + authResult['error']);
+        }
+    }
 </script>
 </body>
 </html>

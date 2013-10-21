@@ -33,6 +33,8 @@ public final class Config {
         public static final String GCM_TOKEN = "gcm_token";
         public static final String PID_FILE = "pid_file";
         public static final String AUDIENCE = "audience";
+        public static final String GOOGLE_CLIENT_ID = "google_client_id";
+        public static final String GOOGLE_SECRET_KEY = "google_secret_key";
     }
 
     public Config(final File file) throws ConfigAlreadyLoadedException, IOException, MissingRequiredKey, NotADirectoryException, URISyntaxException {
