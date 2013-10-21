@@ -52,14 +52,27 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             if (page != null) {
                 database = DatabasePool.getDBConnection();
                 if (request.getMethod() == HttpMethod.GET) {
-                    final FullHttpResponse response = page.onGetRequest(request, database);
-                    HttpHeaders.setContentLength(response, response.content().readableBytes());
-                    HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
-                    if (isKeepAlive(request)) {
-                        HttpHeaders.setKeepAlive(response, true);
-                        chx.write(response);
-                    } else
+                    try {
+                        final FullHttpResponse response = page.onGetRequest(request, database);
+                        HttpHeaders.setContentLength(response, response.content().readableBytes());
+                        HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
+                        if (isKeepAlive(request)) {
+                            HttpHeaders.setKeepAlive(response, true);
+                            chx.write(response);
+                        } else
+                            chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                    } catch (ErrorException e) {
+                        e.printStackTrace();
+                        final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                                ,e.getStatus(), Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
+                        HttpHeaders.setHeader(response, CONTENT_TYPE, Page.ContentTypes.JSON_TYPE);
                         chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                                ,INTERNAL_SERVER_ERROR);
+                        chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                    }
                 } else if (request.getMethod() == HttpMethod.POST)
                     postRequestDecoder = new HttpPostRequestDecoder(request);
                 return;
