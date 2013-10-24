@@ -29,6 +29,7 @@ public final class Messages {
 
     private static final Ansi ACCENT = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.BLUE, null);
     private static final Ansi OK = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.GREEN, null);
+    private static final Ansi WARNING = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.YELLOW, null);
     private static final Ansi ERROR = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.RED, null);
 
     private static ResourceBundle RESOURCE_BUNDLE;
@@ -47,6 +48,13 @@ public final class Messages {
     public static void printError(final String msg) {
         ACCENT.print(System.out, "[ ");
         ERROR.print(System.out, "!!");
+        ACCENT.print(System.out, " ] ");
+        System.out.println(msg);
+    }
+
+    public static void printWarning(final String msg) {
+        ACCENT.print(System.out, "[ ");
+        WARNING.print(System.out, "**");
         ACCENT.print(System.out, " ] ");
         System.out.println(msg);
     }

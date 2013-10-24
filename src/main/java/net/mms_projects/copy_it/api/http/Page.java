@@ -30,6 +30,7 @@ import net.mms_projects.copy_it.api.http.pages.thirdpartyauth.PersonaAuth;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardGet;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
 import net.mms_projects.copy_it.api.http.pages.v1.CoffeePlease;
+import net.mms_projects.copy_it.server.Messages;
 import net.mms_projects.copy_it.server.database.Database;
 
 import java.util.HashMap;
@@ -42,7 +43,7 @@ public abstract class Page {
     private final static class Pages {
         private static final HashMap<String, AuthPage> oauth_pages = new HashMap<String, AuthPage>();
         private static final HashMap<String, Page> noauth_pages = new HashMap<String, Page>();
-        static {
+        private static void init() {
             oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
             oauth_pages.put("/1/clipboard/get", new ClipboardGet());
             oauth_pages.put("/1/android/register", new RegisterGCM());
@@ -55,17 +56,27 @@ public abstract class Page {
 	        noauth_pages.put("/auth/googleplus", new GooglePlusAuth());
             Iterator<Map.Entry<String, AuthPage>> iter = oauth_pages.entrySet().iterator();
             while (iter.hasNext()) {
-                if (!iter.next().getValue().checkConfig())
+                Map.Entry<String, AuthPage> page = iter.next();
+                if (!page.getValue().checkConfig()) {
+                    Messages.printWarning("Could not load " + page.getKey() + " because of a misconfiguration.");
                     iter.remove();
+                }
             }
             Iterator<Map.Entry<String, Page>> iterno = noauth_pages.entrySet().iterator();
             while (iterno.hasNext()) {
-                if (!iterno.next().getValue().checkConfig())
+                Map.Entry<String,Page> page = iterno.next();
+                if (!page.getValue().checkConfig()) {
+                    Messages.printWarning("Could not load " + page.getKey() + " because of a misconfiguration.");
                     iterno.remove();
+                }
             }
         }
         private Pages() {
         }
+    }
+
+    public static void initPages() {
+        Pages.init();
     }
 
     public static Page getNoAuthPage(final String uri) { return Pages.noauth_pages.get(uri); }

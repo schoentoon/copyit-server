@@ -24,6 +24,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import net.mms_projects.copy_it.api.http.Initializer;
+import net.mms_projects.copy_it.api.http.Page;
 import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.DatabasePool;
 import net.mms_projects.copy_it.server.database.MySQL;
@@ -63,6 +64,7 @@ public class Main {
             ChannelFuture channelFuture = b.bind(Config.getHTTPAPIPort());
             if (channelFuture.await().isSuccess()) {
                 Messages.printOK("Bound to port " + Config.getHTTPAPIPort());
+                Page.initPages();
                 Channel channel = channelFuture.sync().channel();
                 channel.closeFuture().sync();
             } else
