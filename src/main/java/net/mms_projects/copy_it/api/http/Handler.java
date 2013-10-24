@@ -48,8 +48,7 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
             final HttpRequest http = (HttpRequest) o;
             this.request = http;
             final URI uri = new URI(request.getUri());
-            page = Page.getNoAuthPage(uri.getPath());
-            if (page != null) {
+            if ((page = Page.getNoAuthPage(uri.getPath())) != null) {
                 database = DatabasePool.getDBConnection();
                 if (request.getMethod() == HttpMethod.GET) {
                     try {
@@ -75,45 +74,41 @@ public class Handler extends SimpleChannelInboundHandler<HttpObject> {
                     }
                 } else if (request.getMethod() == HttpMethod.POST)
                     postRequestDecoder = new HttpPostRequestDecoder(request);
-                return;
-            }
-            page = Page.getAuthPage(uri.getPath());
-            if (page == null) {
+            } else if ((page = Page.getAuthPage(uri.getPath())) == null) {
                 final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
                         ,NOT_FOUND, Unpooled.copiedBuffer("404", CharsetUtil.UTF_8));
                 chx.write(response).addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
-            buf.setLength(0);
-            try {
-                headerVerifier = new HeaderVerifier(http, uri);
-                database = DatabasePool.getDBConnection();
-                headerVerifier.verifyConsumer(database);
-                headerVerifier.verifyOAuthToken(database);
-                headerVerifier.verifyOAuthNonce(database);
-                if (request.getMethod() == HttpMethod.GET) {
-                    headerVerifier.checkSignature(null, false);
-                    final FullHttpResponse response = ((AuthPage) page).onGetRequest(request, database, headerVerifier);
-                    HttpHeaders.setContentLength(response, response.content().readableBytes());
-                    HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
-                    if (isKeepAlive(request)) {
-                        HttpHeaders.setKeepAlive(response, true);
-                        chx.write(response);
-                    } else
-                        chx.write(response).addListener(ChannelFutureListener.CLOSE);
-                } else if (request.getMethod() == HttpMethod.POST)
-                    postRequestDecoder = new HttpPostRequestDecoder(request);
-            } catch (ErrorException e) {
-                e.printStackTrace();
-                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,e.getStatus(), Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
-                HttpHeaders.setHeader(response, CONTENT_TYPE, Page.ContentTypes.JSON_TYPE);
-                chx.write(response).addListener(ChannelFutureListener.CLOSE);
-            } catch (Exception e) {
-                e.printStackTrace();
-                final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
-                        ,INTERNAL_SERVER_ERROR);
-                chx.write(response).addListener(ChannelFutureListener.CLOSE);
+            } else {
+                try {
+                    headerVerifier = new HeaderVerifier(http, uri);
+                    database = DatabasePool.getDBConnection();
+                    headerVerifier.verifyConsumer(database);
+                    headerVerifier.verifyOAuthToken(database);
+                    headerVerifier.verifyOAuthNonce(database);
+                    if (request.getMethod() == HttpMethod.GET) {
+                        headerVerifier.checkSignature(null, false);
+                        final FullHttpResponse response = ((AuthPage) page).onGetRequest(request, database, headerVerifier);
+                        HttpHeaders.setContentLength(response, response.content().readableBytes());
+                        HttpHeaders.setHeader(response, CONTENT_TYPE, page.GetContentType());
+                        if (isKeepAlive(request)) {
+                            HttpHeaders.setKeepAlive(response, true);
+                            chx.write(response);
+                        } else
+                            chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                    } else if (request.getMethod() == HttpMethod.POST)
+                        postRequestDecoder = new HttpPostRequestDecoder(request);
+                } catch (ErrorException e) {
+                    e.printStackTrace();
+                    final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                            ,e.getStatus(), Unpooled.copiedBuffer(e.toString(), CharsetUtil.UTF_8));
+                    HttpHeaders.setHeader(response, CONTENT_TYPE, Page.ContentTypes.JSON_TYPE);
+                    chx.write(response).addListener(ChannelFutureListener.CLOSE);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    final FullHttpResponse response = new DefaultFullHttpResponse(request.getProtocolVersion()
+                            ,INTERNAL_SERVER_ERROR);
+                    chx.write(response).addListener(ChannelFutureListener.CLOSE);
+               }
             }
         } else if (o instanceof HttpContent && request != null && request.getMethod() == HttpMethod.POST) {
             final HttpContent httpContent = (HttpContent) o;
