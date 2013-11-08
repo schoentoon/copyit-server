@@ -19,3 +19,4 @@ target/
 !sample.config
 !travis.config
 *.pid
+http/*.html.*

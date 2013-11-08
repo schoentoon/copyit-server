@@ -114,7 +114,8 @@ public class PageGenerator {
                     return "!" + key + "!";
                 else
                     return result;
-            }
+            } else if (Config.hasString(s))
+                return Config.getStringSafe(s, null);
             return "${" + s + "}";
         }
 
