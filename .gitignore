@@ -20,3 +20,4 @@ target/
 !travis.config
 *.pid
 http/*.html.*
+copyit-server
