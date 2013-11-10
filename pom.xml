@@ -120,7 +120,7 @@
         <repository>
             <id>jlibs-repository</id>
             <name>JLibs Repository</name>
-            <url>https://github.com/santhosh-tekuri/maven-repository/raw/master/</url>
+            <url>http://dl.dropbox.com/u/326301/repository</url>
             <layout>default</layout>
         </repository>
     </repositories>
