@@ -46,6 +46,10 @@ public class Main {
                 new Config(new File(args[0]));
         }  else
             new Config(new File("copyit.config"));
+        if (PageGenerator.checkPages()) {
+            Messages.printWarning("Outdated pages detected! Updating them now!");
+            PageGenerator.generate();
+        }
         printPid();
         new DatabasePool(MySQL.class, Config.getMaxConnectionsDatabasePool());
         EventLoopGroup bossGroup = new NioEventLoopGroup();

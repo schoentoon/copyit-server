@@ -2,6 +2,7 @@ package net.mms_projects.copy_it.server;
 
 import jlibs.core.util.regex.TemplateMatcher;
 import net.mms_projects.copy_it.server.config.Config;
+import net.mms_projects.copy_it.server.config.MissingKey;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -37,6 +38,24 @@ public class PageGenerator {
             }
         }
         return true;
+    }
+
+    public static boolean checkPages() throws MissingKey {
+        for (String page : pages) {
+            File file = new File(Config.getString(Config.Keys.HTTP_FILES) + File.separator + page + DOT_HTML);
+            final long lastUpdated = file.lastModified();
+            for (Locale locale : locales) {
+                File lpage = new File(Config.getString(Config.Keys.HTTP_FILES) + File.separator + page + DOT_HTML_DOT + locale.getLanguage() + UNDERSCORE + locale.getCountry());
+                if (lastUpdated > lpage.lastModified())
+                    return true;
+            }
+            for (Locale locale : symlinks) {
+                File lpage = new File(Config.getString(Config.Keys.HTTP_FILES) + File.separator + page + DOT_HTML_DOT + locale.getLanguage());
+                if (lastUpdated > lpage.lastModified())
+                    return true;
+            }
+        }
+        return false;
     }
 
     private static boolean cleanUp() {
