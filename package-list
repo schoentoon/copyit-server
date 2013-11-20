@@ -1,0 +1,12 @@
+net.mms_projects.copy_it.api.http
+net.mms_projects.copy_it.api.http.pages.android
+net.mms_projects.copy_it.api.http.pages.exceptions
+net.mms_projects.copy_it.api.http.pages.oauth
+net.mms_projects.copy_it.api.http.pages.thirdpartyauth
+net.mms_projects.copy_it.api.http.pages.v1
+net.mms_projects.copy_it.api.oauth
+net.mms_projects.copy_it.api.oauth.exceptions
+net.mms_projects.copy_it.server
+net.mms_projects.copy_it.server.config
+net.mms_projects.copy_it.server.database
+net.mms_projects.copy_it.server.push.android
