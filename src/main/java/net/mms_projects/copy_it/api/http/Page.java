@@ -43,6 +43,12 @@ public abstract class Page {
     private final static class Pages {
         private static final HashMap<String, AuthPage> oauth_pages = new HashMap<String, AuthPage>();
         private static final HashMap<String, Page> noauth_pages = new HashMap<String, Page>();
+
+        /**
+         * Register all your page handlers here with simple /uris/, don't bother with doing config checks yourself,
+         * bottom of this method automatically filters them. Put all the page handlers using AuthPage in oauth_pages
+         * all the others in noauth_pages.
+         */
         private static void init() {
             oauth_pages.put("/1/clipboard/update", new ClipboardUpdate());
             oauth_pages.put("/1/clipboard/get", new ClipboardGet());
@@ -53,7 +59,7 @@ public abstract class Page {
             noauth_pages.put("/oauth/access_token", new AccessToken());
             noauth_pages.put("/1/coffee/please", new CoffeePlease());
             noauth_pages.put("/auth/persona", new PersonaAuth());
-	        noauth_pages.put("/auth/googleplus", new GooglePlusAuth());
+            noauth_pages.put("/auth/googleplus", new GooglePlusAuth());
             Iterator<Map.Entry<String, AuthPage>> iter = oauth_pages.entrySet().iterator();
             while (iter.hasNext()) {
                 Map.Entry<String, AuthPage> page = iter.next();
@@ -64,13 +70,14 @@ public abstract class Page {
             }
             Iterator<Map.Entry<String, Page>> iterno = noauth_pages.entrySet().iterator();
             while (iterno.hasNext()) {
-                Map.Entry<String,Page> page = iterno.next();
+                Map.Entry<String, Page> page = iterno.next();
                 if (!page.getValue().checkConfig()) {
                     Messages.printWarning("Could not load " + page.getKey() + " because of a misconfiguration.");
                     iterno.remove();
                 }
             }
         }
+
         private Pages() {
         }
     }
@@ -79,8 +86,13 @@ public abstract class Page {
         Pages.init();
     }
 
-    public static Page getNoAuthPage(final String uri) { return Pages.noauth_pages.get(uri); }
-    public static AuthPage getAuthPage(final String uri) { return Pages.oauth_pages.get(uri); }
+    public static Page getNoAuthPage(final String uri) {
+        return Pages.noauth_pages.get(uri);
+    }
+
+    public static AuthPage getAuthPage(final String uri) {
+        return Pages.oauth_pages.get(uri);
+    }
 
     public final static class ContentTypes {
         public static final String JSON_TYPE = "application/json";
@@ -88,19 +100,50 @@ public abstract class Page {
         public static final String PLAIN_HTML = "text/html";
     }
 
+    /**
+     * Abstract method for get requests
+     *
+     * @param request  The netty HttpRequest object for this request
+     * @param database A database from the database pool for you to use
+     * @return
+     * @throws Exception
+     */
     public abstract FullHttpResponse onGetRequest(final HttpRequest request
-                                                 ,final Database database) throws Exception;
+            , final Database database) throws Exception;
 
+    /**
+     * Abstract method for post requests
+     *
+     * @param request            The netty HttpRequest object for this request
+     * @param postRequestDecoder A postRequestDecoder to have direct access to all the posted fields
+     * @param database           A database for you to use
+     * @return
+     * @throws Exception
+     */
     public abstract FullHttpResponse onPostRequest(final HttpRequest request
-                                                  ,final HttpPostRequestDecoder postRequestDecoder
-                                                  ,final Database database) throws Exception;
+            , final HttpPostRequestDecoder postRequestDecoder
+            , final Database database) throws Exception;
 
+    /**
+     * @return Specify the Content-Type header to use in the http response, application/json by default
+     */
     public String GetContentType() {
         return ContentTypes.JSON_TYPE;
     }
 
-    public boolean checkConfig() { return true; }
+    /**
+     * Override this to do any config checks
+     *
+     * @return true if you want to still use this page after your config checks, false will unload it
+     */
+    public boolean checkConfig() {
+        return true;
+    }
 
+    /**
+     * @param runnable This runnable will be executed sometime in the near future after we already replied to the http
+     *                 request
+     */
     protected void postProcess(final Runnable runnable) {
         if (runnable != null)
             EXECUTOR_SERVICE.submit(runnable);

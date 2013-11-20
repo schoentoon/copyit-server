@@ -21,3 +21,4 @@ target/
 *.pid
 http/*.html.*
 copyit-server
+doc/
