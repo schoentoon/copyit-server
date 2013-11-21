@@ -20,6 +20,10 @@ package net.mms_projects.copy_it.api.oauth;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+/**
+ * Helper class to turn the ResultSet in KeyStore into a Consumer for easy access
+ * @see net.mms_projects.copy_it.api.oauth.KeyStore
+ */
 public class Consumer {
     public static final class Flags {
         public static final int GCM = 0x01;

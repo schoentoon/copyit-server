@@ -42,8 +42,13 @@ import static io.netty.handler.codec.http.HttpResponseStatus.INTERNAL_SERVER_ERR
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 
 public class Handler extends SimpleChannelInboundHandler<HttpObject> {
+    /**
+     * Internal message handler, this is where all the http requests come in. This is where most of the authorization
+     * and page logic goes on.
+     * @see net.mms_projects.copy_it.api.http.Page
+     * @see net.mms_projects.copy_it.api.oauth.HeaderVerifier
+     */
     protected void messageReceived(final ChannelHandlerContext chx, final HttpObject o) throws Exception {
-        System.err.println(o.getClass().getName());
         if (o instanceof HttpRequest) {
             final HttpRequest http = (HttpRequest) o;
             this.request = http;

@@ -112,6 +112,13 @@ public class HeaderVerifier {
         this(request, uri, 0);
     }
 
+    /**
+     * Constructor for check OAuth headers, most of the things that can be checked will be checked right away.
+     * @param request The netty HttpRequest to get the headers from
+     * @param uri The URI for this request "new URI(request.getUri())"
+     * @param flags These flags are only related to the signin, otherwise you may omit them
+     * @throws OAuthException Thrown if one of the checks failed
+     */
     public HeaderVerifier(final HttpRequest request, final URI uri, final int flags) throws OAuthException {
         if (!request.headers().contains(AUTHORIZATION))
             throw new OAuthException(ErrorMessages.NO_AUTH_HEADER);
@@ -177,6 +184,10 @@ public class HeaderVerifier {
         this.flags = flags;
     }
 
+    /**
+     * Verify that the consumer for this HeaderVerifier actually exists, internally uses KeyStore to cache results
+     * @throws OAuthException Thrown if the consumer is invalid
+     */
     public void verifyConsumer(Database database) throws SQLException, OAuthException {
         try {
             consumer = KeyStore.getKeyStore().getConsumer(oauth_params.get(OAuthParameters.OAUTH_CONSUMER_KEY), database);
@@ -191,6 +202,11 @@ public class HeaderVerifier {
                                                "AND public_key = ? " +
                                                "LIMIT 1";
 
+    /**
+     * Verify that the user oauth token is valid, must be called after verifyConsumer as it has to look for both the user
+     * token and the application id which it gets from verifyConsumer
+     * @throws OAuthException Thrown if the user token is invalid
+     */
     public void verifyOAuthToken(Database database) throws SQLException, OAuthException {
         final String oauth_token = oauth_params.get(OAuthParameters.OAUTH_TOKEN);
         PreparedStatement statement = database.getConnection().prepareStatement(SELECT_QUERY);
@@ -243,6 +259,11 @@ public class HeaderVerifier {
                                                      "VALUES (?, ?);";
 
 
+    /**
+     * Used to verify that the provided nonce is not used earlier in the past 5 minutes, make sure you called
+     * verifyOAuthToken first
+     * @throws OAuthException Thrown if it was used earlier
+     */
     public void verifyOAuthNonce(Database database) throws SQLException, OAuthException {
         if (user == null) /* Should NEVER happen! */
             throw new OAuthException("user is null!");
@@ -265,6 +286,12 @@ public class HeaderVerifier {
 
     private static final String HMAC_SHA1 = "HmacSHA1";
 
+    /**
+     * Validate the signature for the request, make sure you've called all verify* methods first
+     * @param postRequestDecoder The post parameters for the request, pass null if it's a GET request instead
+     * @param https Should we use https to generate our signature?
+     * @throws OAuthException Thrown if the signature is invalid
+     */
     public void checkSignature(HttpPostRequestDecoder postRequestDecoder, boolean https) throws UnsupportedEncodingException, URISyntaxException, OAuthException {
         final String signed_with = oauth_params.get(OAuthParameters.OAUTH_SIGNATURE);
         final String raw = createRaw(postRequestDecoder, https);
@@ -294,6 +321,10 @@ public class HeaderVerifier {
     private static final String PLUS = "+";
     private static final String PLUS_ENCODED = "%20";
 
+    /**
+     * Create method for the raw signature base for post requests
+     * @see net.mms_projects.copy_it.api.oauth.HeaderVerifier#checkSignature(io.netty.handler.codec.http.multipart.HttpPostRequestDecoder, boolean)
+     */
     private String createRaw(HttpPostRequestDecoder post, boolean https) throws UnsupportedEncodingException, URISyntaxException {
         final StringBuilder rawbuilder = new StringBuilder();
         rawbuilder.append(request.getMethod().toString());
@@ -365,6 +396,9 @@ public class HeaderVerifier {
         return rawbuilder.toString();
     }
 
+    /**
+     * Small helper method to create a OAuthException with multiple messages
+     */
     private void error(String message) {
         if (exception == null)
             exception = new OAuthException(message);

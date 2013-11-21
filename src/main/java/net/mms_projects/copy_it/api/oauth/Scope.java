@@ -19,6 +19,10 @@ package net.mms_projects.copy_it.api.oauth;
 
 import java.sql.SQLException;
 
+/**
+ * Easy access to the scope of consumers
+ * @see net.mms_projects.copy_it.api.oauth.Consumer
+ */
 public enum Scope {
     READ, WRITE_AND_READ;
     public static Scope fromDatabase(int i) throws SQLException {

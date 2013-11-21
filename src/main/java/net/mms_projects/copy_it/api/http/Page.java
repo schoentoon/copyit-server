@@ -105,8 +105,9 @@ public abstract class Page {
      *
      * @param request  The netty HttpRequest object for this request
      * @param database A database from the database pool for you to use
-     * @return
-     * @throws Exception
+     * @return The response, as the default content type is json @see GetContentType it is recommended to return json
+     * @throws Exception All ErrorExceptions will be formatted according to the spec, all other thrown exceptions will
+     * result in a HTTP 500 (internal server error)
      */
     public abstract FullHttpResponse onGetRequest(final HttpRequest request
             , final Database database) throws Exception;
@@ -114,11 +115,8 @@ public abstract class Page {
     /**
      * Abstract method for post requests
      *
-     * @param request            The netty HttpRequest object for this request
      * @param postRequestDecoder A postRequestDecoder to have direct access to all the posted fields
-     * @param database           A database for you to use
-     * @return
-     * @throws Exception
+     * @see net.mms_projects.copy_it.api.http.Page#onGetRequest(io.netty.handler.codec.http.HttpRequest, net.mms_projects.copy_it.server.database.Database)
      */
     public abstract FullHttpResponse onPostRequest(final HttpRequest request
             , final HttpPostRequestDecoder postRequestDecoder

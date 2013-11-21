@@ -27,7 +27,7 @@ import java.util.HashMap;
 
 public class KeyStore {
     private static final KeyStore keyStore = new KeyStore();
-    public KeyStore() {
+    private KeyStore() { //TODO This hashmap is infinite, make it lru
         consumers = new HashMap<String, Consumer>();
     }
 
@@ -40,6 +40,12 @@ public class KeyStore {
                                                "WHERE public_key = ? " +
                                                "LIMIT 1";
 
+    /**
+     * Get the Consumer object based on a certain public key
+     * @param public_key The public key to look up
+     * @return The consumer
+     * @throws InvalidConsumerException Thrown if the consumer doesn't exist
+     */
     public Consumer getConsumer(final String public_key, final Database database) throws SQLException, InvalidConsumerException {
         Consumer output = consumers.get(public_key);
         if (output != null)
