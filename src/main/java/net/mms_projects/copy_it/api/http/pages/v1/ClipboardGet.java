@@ -21,6 +21,7 @@ import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
 import io.netty.util.CharsetUtil;
 import net.mms_projects.copy_it.api.http.AuthPage;
@@ -36,7 +37,6 @@ import java.sql.ResultSet;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class ClipboardGet extends AuthPage {
-    private static final String NO_CONTENT_POSTED = "No content posted yet.";
     private static final String CONTENT = "content";
     private static final String DATA = "data";
     private static final String LAST_UPDATED = "last_updated";
@@ -45,6 +45,15 @@ public class ClipboardGet extends AuthPage {
                                                  "WHERE user_id = ?";
 
     private static final String NO_READ_PERMISSION = "No read permissions";
+
+    public static final class NoContentException extends ErrorException {
+        private static final String NO_CONTENT_POSTED = "No content posted yet.";
+
+        public NoContentException() {
+            super(NO_CONTENT_POSTED);
+            setStatus(HttpResponseStatus.NO_CONTENT);
+        }
+    }
 
     public FullHttpResponse onGetRequest(HttpRequest request, Database database, HeaderVerifier headerVerifier) throws Exception {
         if (!headerVerifier.getConsumerScope().canRead() || !headerVerifier.getUserScope().canRead())
@@ -61,7 +70,7 @@ public class ClipboardGet extends AuthPage {
                     ,OK, Unpooled.copiedBuffer(json.toString(), CharsetUtil.UTF_8));
         }
         result.close();
-        throw new ErrorException(NO_CONTENT_POSTED);
+        throw new NoContentException();
     }
 
     public FullHttpResponse onPostRequest(HttpRequest request, HttpPostRequestDecoder postRequestDecoder, Database database, HeaderVerifier headerVerifier) throws Exception {
