@@ -96,8 +96,10 @@
         </dependency>
         <dependency>
             <groupId>jlibs</groupId>
-            <artifactId>jlibs-jdbc</artifactId>
+            <artifactId>jlibs-core</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/libs/jlibs-core-1.0.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.google.api-client</groupId>
@@ -115,14 +117,4 @@
             <version>1.17.0-rc</version>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>jlibs-repository</id>
-            <name>JLibs Repository</name>
-            <url>http://dl.dropbox.com/u/326301/repository</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
-
 </project>
