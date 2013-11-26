@@ -18,6 +18,7 @@
 package net.mms_projects.copy_it.api.oauth;
 
 import net.mms_projects.copy_it.api.oauth.exceptions.InvalidConsumerException;
+import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.database.Database;
 
 import java.sql.PreparedStatement;
@@ -29,7 +30,7 @@ import java.util.Map;
 
 public class KeyStore {
     private static final KeyStore keyStore = new KeyStore();
-    private static final int MAX_ITEMS = 100; //TODO Make this a config option, just like in FileCache.java
+    private static final int MAX_ITEMS = Config.getInt(Config.Keys.MAX_CACHED_CONSUMERS, 100);
     private KeyStore() {
         consumers = new LinkedHashMap<String, Consumer>() {
             @Override

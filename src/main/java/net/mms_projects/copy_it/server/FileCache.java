@@ -31,7 +31,7 @@ import java.util.Set;
 
 public final class FileCache {
     private static final FileCache FILE_CACHE = new FileCache();
-    private static final int MAX_ITEMS = 100; //TODO Make this a config option
+    private static final int MAX_ITEMS = Config.getInt(Config.Keys.MAX_CACHED_FILES, 100);
 
     private FileCache() {
         cache = new LinkedHashMap<String, String>() {

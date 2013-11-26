@@ -35,6 +35,8 @@ public final class Config {
         public static final String AUDIENCE = "audience";
         public static final String GOOGLE_CLIENT_ID = "google_client_id";
         public static final String GOOGLE_SECRET_KEY = "google_secret_key";
+        public static final String MAX_CACHED_FILES = "max_cached_files";
+        public static final String MAX_CACHED_CONSUMERS = "max_cached_consumers";
     }
 
     public Config(final File file) throws ConfigAlreadyLoadedException, IOException, MissingRequiredKey, NotADirectoryException, URISyntaxException {
@@ -47,7 +49,7 @@ public final class Config {
             if (!properties.containsKey(required[i]))
                 throw new MissingRequiredKey(required[i]);
         }
-        final String[] ints = { Keys.HTTPAPI_PORT };
+        final String[] ints = { Keys.HTTPAPI_PORT, Keys.MAX_CACHED_FILES, Keys.MAX_CACHED_CONSUMERS };
         for (int i = 0; i < ints.length; i++) {
             if (properties.containsKey(ints[i]))
                 Integer.valueOf(properties.getProperty(ints[i]));
@@ -102,6 +104,14 @@ public final class Config {
         if (properties.containsKey(key))
             return properties.getProperty(key);
         return def;
+    }
+
+    public static int getInt(final String key, final int def) {
+        try {
+            return Integer.parseInt(properties.getProperty(key));
+        } catch (Exception e) {
+            return def;
+        }
     }
 
     public static boolean hasString(final String key) {
