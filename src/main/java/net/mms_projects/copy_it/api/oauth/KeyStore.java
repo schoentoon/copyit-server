@@ -24,11 +24,19 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class KeyStore {
     private static final KeyStore keyStore = new KeyStore();
-    private KeyStore() { //TODO This hashmap is infinite, make it lru
-        consumers = new HashMap<String, Consumer>();
+    private static final int MAX_ITEMS = 100; //TODO Make this a config option, just like in FileCache.java
+    private KeyStore() {
+        consumers = new LinkedHashMap<String, Consumer>() {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, Consumer> eldest) {
+                return size() > MAX_ITEMS;
+            }
+        };
     }
 
     public static final KeyStore getKeyStore() {
