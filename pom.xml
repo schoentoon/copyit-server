@@ -95,13 +95,6 @@
             <version>4.3</version>
         </dependency>
         <dependency>
-            <groupId>jlibs</groupId>
-            <artifactId>jlibs-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/libs/jlibs-core-1.0.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
             <version>1.17.0-rc</version>

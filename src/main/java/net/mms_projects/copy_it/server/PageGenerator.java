@@ -1,9 +1,7 @@
 package net.mms_projects.copy_it.server;
 
-import jlibs.core.util.regex.TemplateMatcher;
 import net.mms_projects.copy_it.server.config.Config;
 import net.mms_projects.copy_it.server.config.MissingKey;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Files;
