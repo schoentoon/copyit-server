@@ -17,20 +17,12 @@
 
 package net.mms_projects.copy_it.server;
 
-import jlibs.core.lang.Ansi;
-
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 public final class Messages {
-
     private static final String BUNDLE_NAME = "messages";
-
-    private static final Ansi ACCENT = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.BLUE, null);
-    private static final Ansi OK = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.GREEN, null);
-    private static final Ansi WARNING = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.YELLOW, null);
-    private static final Ansi ERROR = new Ansi(Ansi.Attribute.BRIGHT, Ansi.Color.RED, null);
 
     private static ResourceBundle RESOURCE_BUNDLE;
     private static ResourceBundle FALLBACK_RESOURCE_BUNDLE;
@@ -38,24 +30,72 @@ public final class Messages {
     private Messages() {
     }
 
+    private static final String ACCENT = "\033[1;34m";
+    private static final String OK = "\033[1;32m";
+    private static final String WARNING = "\033[1;33m";
+    private static final String ERROR = "\033[1;31m";
+    private static final String RESET = "\033[m";
+
+    private static void ok() {
+        final boolean colors = ansiColorsSupported();
+        if (colors)
+            System.out.print(ACCENT);
+        System.out.print("[ ");
+        if (colors)
+            System.out.print(OK);
+        System.out.print("OK");
+        if (colors)
+            System.out.print(ACCENT);
+        System.out.print(" ] ");
+        System.out.print(RESET);
+    }
+
+    private static void warning() {
+        final boolean colors = ansiColorsSupported();
+        if (colors)
+            System.out.print(ACCENT);
+        System.out.print("[ ");
+        if (colors)
+            System.out.print(WARNING);
+        System.out.print("**");
+        if (colors)
+            System.out.print(ACCENT);
+        System.out.print(" ] ");
+        System.out.print(RESET);
+    }
+
+    private static void error() {
+        final boolean colors = ansiColorsSupported();
+        if (colors)
+            System.out.print(ACCENT);
+        System.out.print("[ ");
+        if (colors)
+            System.out.print(ERROR);
+        System.out.print("!!");
+        if (colors)
+            System.out.print(ACCENT);
+        System.out.print(" ] ");
+        System.out.print(RESET);
+    }
+
+    private static boolean ansiColorsSupported() {
+        if (System.getProperty("os.name").contains("windows"))
+            return false;
+        return System.console() != null;
+    }
+
     public static void printOK(final String msg) {
-        ACCENT.print(System.out, "[ ");
-        OK.print(System.out, "OK");
-        ACCENT.print(System.out, " ] ");
+        ok();
         System.out.println(msg);
     }
 
     public static void printError(final String msg) {
-        ACCENT.print(System.out, "[ ");
-        ERROR.print(System.out, "!!");
-        ACCENT.print(System.out, " ] ");
+        error();
         System.out.println(msg);
     }
 
     public static void printWarning(final String msg) {
-        ACCENT.print(System.out, "[ ");
-        WARNING.print(System.out, "**");
-        ACCENT.print(System.out, " ] ");
+        warning();
         System.out.println(msg);
     }
 
