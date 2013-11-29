@@ -24,7 +24,7 @@ import net.mms_projects.copy_it.server.database.Database;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -32,12 +32,11 @@ public class KeyStore {
     private static final KeyStore keyStore = new KeyStore();
     private static final int MAX_ITEMS = Config.getInt(Config.Keys.MAX_CACHED_CONSUMERS, 100);
     private KeyStore() {
-        consumers = new LinkedHashMap<String, Consumer>() {
-            @Override
+        consumers = Collections.synchronizedMap(new LinkedHashMap<String, Consumer>() {
             protected boolean removeEldestEntry(Map.Entry<String, Consumer> eldest) {
                 return size() > MAX_ITEMS;
             }
-        };
+        });
     }
 
     public static final KeyStore getKeyStore() {
@@ -72,5 +71,5 @@ public class KeyStore {
         return output;
     }
 
-    private final HashMap<String, Consumer> consumers;
+    private final Map<String, Consumer> consumers;
 }

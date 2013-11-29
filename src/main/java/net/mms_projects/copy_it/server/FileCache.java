@@ -34,16 +34,16 @@ public final class FileCache {
     private static final int MAX_ITEMS = Config.getInt(Config.Keys.MAX_CACHED_FILES, 100);
 
     private FileCache() {
-        cache = new LinkedHashMap<String, String>() {
+        cache = Collections.synchronizedMap(new LinkedHashMap<String, String>() {
             public boolean removeEldestEntry(Map.Entry<String, String> eldest) {
                 return size() > MAX_ITEMS;
             }
-        };
-        not_files = Collections.newSetFromMap(new LinkedHashMap<String, Boolean>() {
+        });
+        not_files = Collections.synchronizedSet(Collections.newSetFromMap(new LinkedHashMap<String, Boolean>() {
             protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
                 return size() > MAX_ITEMS;
             }
-        });
+        }));
     }
 
     public static String get(final String filename) throws IOException, MissingKey {
@@ -76,6 +76,6 @@ public final class FileCache {
         FILE_CACHE.not_files.clear();
     }
 
-    private final LinkedHashMap<String, String> cache;
+    private final Map<String, String> cache;
     private final Set<String> not_files;
 }
