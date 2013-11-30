@@ -99,7 +99,7 @@ public class HeaderVerifier {
     }
 
     private static final String OAUTH = "OAuth ";
-    private static final String COMMA_REGEX = ", ";
+    private static final String COMMA_REGEX = ",( )?";
     private static final String EQUALS_REGEX = "=";
     private static final String STRIP_QUOTES_REGEX = "^\"|\"$";
     private static final String EMPTY = "";
