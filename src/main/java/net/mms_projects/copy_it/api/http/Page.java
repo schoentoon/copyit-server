@@ -30,6 +30,7 @@ import net.mms_projects.copy_it.api.http.pages.thirdpartyauth.PersonaAuth;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardGet;
 import net.mms_projects.copy_it.api.http.pages.v1.ClipboardUpdate;
 import net.mms_projects.copy_it.api.http.pages.v1.CoffeePlease;
+import net.mms_projects.copy_it.api.http.pages.v1.UserProfile;
 import net.mms_projects.copy_it.server.Messages;
 import net.mms_projects.copy_it.server.database.Database;
 
@@ -54,6 +55,7 @@ public abstract class Page {
             oauth_pages.put("/1/clipboard/get", new ClipboardGet());
             oauth_pages.put("/1/android/register", new RegisterGCM());
             oauth_pages.put("/1/android/unregister", new UnRegisterGCM());
+            oauth_pages.put("/1/user/profile", new UserProfile());
             noauth_pages.put("/oauth/request_token", new RequestToken());
             noauth_pages.put("/oauth/authorize", new Authorize());
             noauth_pages.put("/oauth/access_token", new AccessToken());
