@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `user_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `user_email` varchar(64) NOT NULL,
   `user_pass` char(60) DEFAULT NULL,
+  `signed_up` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `user_name` (`user_email`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;

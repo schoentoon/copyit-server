@@ -34,11 +34,12 @@ import java.sql.ResultSet;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 
 public class UserProfile extends AuthPage {
-    private static final String SELECT_USER = "SELECT user_id id, user_email email " +
+    private static final String SELECT_USER = "SELECT user_id id, user_email email, UNIX_TIMESTAMP(signed_up) signed_up " +
                                               "FROM users " +
                                               "WHERE user_id = ?";
     private static final String ID = "id";
     private static final String EMAIL = "email";
+    private static final String SIGNED_UP = "signed_up";
 
     public FullHttpResponse onGetRequest(HttpRequest request, Database database, HeaderVerifier headerVerifier) throws Exception {
         PreparedStatement statement = database.getConnection().prepareStatement(SELECT_USER);
@@ -48,6 +49,7 @@ public class UserProfile extends AuthPage {
             final JSONObject json = new JSONObject();
             json.put(ID, result.getInt(ID));
             json.put(EMAIL, result.getString(EMAIL));
+            json.put(SIGNED_UP, result.getInt(SIGNED_UP));
             result.close();
             return new DefaultFullHttpResponse(request.getProtocolVersion()
                     ,OK, Unpooled.copiedBuffer(json.toString(), CharsetUtil.UTF_8));
