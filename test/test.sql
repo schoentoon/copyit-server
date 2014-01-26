@@ -10,5 +10,5 @@ INSERT INTO `consumers` (`public_key`, `secret_key`, `application_id`, `flags`, 
 INSERT INTO `users` (`user_id`, `user_email`, `user_pass`) VALUES
 (1, 'test@test.com', NULL);
 
-INSERT INTO `user_tokens` (`user_id`, `application_id`, `public_key`, `secret_key`) VALUES
-(1, 1, '9476f5130a07a7c0061de48bc19123f51636af704c5df369701960e0bc151255', 'b96fc9e22532b6bdc2fb760465ea19fa373c520703877ef7e3f0b6a728cefcb1');
+INSERT INTO `user_tokens` (`user_id`, `application_id`, `public_key`, `secret_key`, `scopes`) VALUES
+(1, 1, '9476f5130a07a7c0061de48bc19123f51636af704c5df369701960e0bc151255', 'b96fc9e22532b6bdc2fb760465ea19fa373c520703877ef7e3f0b6a728cefcb1', 2);
