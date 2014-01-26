@@ -85,7 +85,7 @@ public class ClipboardUpdate extends AuthPage {
             do {
                 gcm.addRegistrationId(resultSet.getString(GCM_TOKEN));
             } while (resultSet.next());
-            gcm.setData("test", 123);
+            gcm.setData("action", "content-updated");
             postProcess(gcm);
         }
         resultSet.close();
